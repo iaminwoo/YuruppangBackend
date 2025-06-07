@@ -13,7 +13,7 @@ COPY src ./src
 RUN gradle clean build -x test --no-daemon
 
 # 2. 실행 단계: OpenJDK 21
-FROM eclipse-temurin:21-jdk-focal
+FROM eclipse-temurin:21-jdk
 WORKDIR /app
 
 # 빌드 결과물 복사 (jar 위치 맞춰야 함)
