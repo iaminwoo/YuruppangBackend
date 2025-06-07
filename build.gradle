@@ -36,6 +36,7 @@ dependencies {
 	implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0'
 	implementation 'org.slf4j:slf4j-api'
 	implementation 'ch.qos.logback:logback-classic'
+	implementation("org.postgresql:postgresql:42.7.6")
 }
 
 tasks.named('test') {
