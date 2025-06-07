@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: YuruppangBackend
+  profiles:
+    active: dev
+
+  output:
+    ansi:
+      enabled: ALWAYS
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+logging:
+  level:
+    p6spy: info
+
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: true
