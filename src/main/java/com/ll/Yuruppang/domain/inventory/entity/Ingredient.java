@@ -29,6 +29,7 @@ public class Ingredient {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Setter
     private IngredientUnit unit;
 
     @Column(nullable = false)

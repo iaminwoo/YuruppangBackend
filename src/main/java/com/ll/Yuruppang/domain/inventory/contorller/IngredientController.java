@@ -1,6 +1,7 @@
 package com.ll.Yuruppang.domain.inventory.contorller;
 
 import com.ll.Yuruppang.domain.inventory.entity.dto.request.IngredientDensityRequest;
+import com.ll.Yuruppang.domain.inventory.entity.dto.request.IngredientUnitRequest;
 import com.ll.Yuruppang.domain.inventory.entity.dto.response.IngredientResponse;
 import com.ll.Yuruppang.domain.inventory.entity.dto.response.StockResponse;
 import com.ll.Yuruppang.domain.inventory.service.IngredientService;
@@ -48,5 +49,12 @@ public class IngredientController {
             @PathVariable Long ingredientId, @RequestBody @Valid IngredientDensityRequest request
     ) {
         return RsData.success(HttpStatus.OK, ingredientService.recalculateQuantity(ingredientId, request.unitVolume(), request.unitWeight()));
+    }
+
+    @PatchMapping("/{ingredientId}")
+    public RsData<IngredientResponse> changeIngredientUnit(
+            @PathVariable Long ingredientId, @RequestBody @Valid IngredientUnitRequest request
+    ) {
+        return RsData.success(HttpStatus.OK, ingredientService.changeIngredientUnit(ingredientId, request.newUnit()));
     }
 }

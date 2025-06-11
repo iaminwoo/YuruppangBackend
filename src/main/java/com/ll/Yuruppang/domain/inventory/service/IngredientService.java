@@ -179,17 +179,25 @@ public class IngredientService {
         ingredient.setTotalStock(volume.multiply(newDensity));
         ingredient.setDensity(newDensity);
 
-        return new IngredientResponse(
-                ingredientId, ingredient.getName(), ingredient.getUnit(),
-                ingredient.getUnitPrice(), ingredient.getTotalStock(), ingredient.getDensity()
-        );
+        return makeResponseDto(ingredient);
+    }
+
+    @Transactional(readOnly = true)
+    public IngredientResponse getIngredientDetail(Long ingredientId) {
+        Ingredient ingredient = findById(ingredientId);
+        return makeResponseDto(ingredient);
     }
 
     @Transactional
-    public IngredientResponse getIngredientDetail(Long ingredientId) {
+    public IngredientResponse changeIngredientUnit(Long ingredientId, IngredientUnit newUnit) {
         Ingredient ingredient = findById(ingredientId);
+        ingredient.setUnit(newUnit);
+        return makeResponseDto(ingredient);
+    }
+
+    private IngredientResponse makeResponseDto(Ingredient ingredient) {
         return new IngredientResponse(
-                ingredientId, ingredient.getName(), ingredient.getUnit(),
+                ingredient.getId(), ingredient.getName(), ingredient.getUnit(),
                 ingredient.getUnitPrice(), ingredient.getTotalStock(), ingredient.getDensity()
         );
     }
