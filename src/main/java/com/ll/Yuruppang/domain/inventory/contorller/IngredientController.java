@@ -1,8 +1,11 @@
 package com.ll.Yuruppang.domain.inventory.contorller;
 
+import com.ll.Yuruppang.domain.inventory.entity.dto.request.IngredientDensityRequest;
+import com.ll.Yuruppang.domain.inventory.entity.dto.response.IngredientResponse;
 import com.ll.Yuruppang.domain.inventory.entity.dto.response.StockResponse;
 import com.ll.Yuruppang.domain.inventory.service.IngredientService;
 import com.ll.Yuruppang.global.response.RsData;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -33,5 +36,17 @@ public class IngredientController {
     public RsData<StockResponse> cleanStocks() {
         ingredientService.cleanup();
         return RsData.success(HttpStatus.OK, ingredientService.getStocks());
+    }
+
+    @GetMapping("/{ingredientId}")
+    public RsData<IngredientResponse> getIngredientDetail(@PathVariable Long ingredientId) {
+        return RsData.success(HttpStatus.OK, ingredientService.getIngredientDetail(ingredientId));
+    }
+
+    @PostMapping("/{ingredientId}/recalculate-quantity")
+    public RsData<IngredientResponse> recalculateQuantity(
+            @PathVariable Long ingredientId, @RequestBody @Valid IngredientDensityRequest request
+    ) {
+        return RsData.success(HttpStatus.OK, ingredientService.recalculateQuantity(ingredientId, request.unitVolume(), request.unitWeight()));
     }
 }

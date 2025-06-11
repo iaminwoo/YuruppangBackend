@@ -7,6 +7,7 @@ import com.ll.Yuruppang.domain.inventory.entity.LogType;
 import com.ll.Yuruppang.domain.inventory.entity.dto.IngredientDto;
 import com.ll.Yuruppang.domain.inventory.entity.dto.request.IngredientAddRequest;
 import com.ll.Yuruppang.domain.inventory.entity.dto.request.IngredientUseRequest;
+import com.ll.Yuruppang.domain.inventory.entity.dto.response.IngredientResponse;
 import com.ll.Yuruppang.domain.inventory.entity.dto.response.StockResponse;
 import com.ll.Yuruppang.domain.inventory.repository.IngredientRepository;
 import com.ll.Yuruppang.domain.inventory.repository.LogRepository;
@@ -167,5 +168,29 @@ public class IngredientService {
                 ingredientRepository.delete(ingredient);
             }
         }
+    }
+
+    @Transactional
+    public IngredientResponse recalculateQuantity(Long ingredientId, BigDecimal unitVolume, BigDecimal unitWeight) {
+        Ingredient ingredient = findById(ingredientId);
+        BigDecimal newDensity = unitWeight.divide(unitVolume, 4, RoundingMode.HALF_UP);
+
+        BigDecimal volume = ingredient.getTotalStock().divide(ingredient.getDensity(), 4, RoundingMode.HALF_UP);
+        ingredient.setTotalStock(volume.multiply(newDensity));
+        ingredient.setDensity(newDensity);
+
+        return new IngredientResponse(
+                ingredientId, ingredient.getName(), ingredient.getUnit(),
+                ingredient.getUnitPrice(), ingredient.getTotalStock(), ingredient.getDensity()
+        );
+    }
+
+    @Transactional
+    public IngredientResponse getIngredientDetail(Long ingredientId) {
+        Ingredient ingredient = findById(ingredientId);
+        return new IngredientResponse(
+                ingredientId, ingredient.getName(), ingredient.getUnit(),
+                ingredient.getUnitPrice(), ingredient.getTotalStock(), ingredient.getDensity()
+        );
     }
 }

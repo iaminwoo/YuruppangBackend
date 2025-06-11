@@ -3,10 +3,7 @@ package com.ll.Yuruppang.domain.inventory.entity;
 import com.ll.Yuruppang.domain.recipe.entity.RecipePartIngredient;
 import com.ll.Yuruppang.global.exceptions.ErrorCode;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -37,8 +34,13 @@ public class Ingredient {
     @Column(nullable = false)
     private BigDecimal unitPrice; // 단위당 가격
 
+    @Setter
     @Column(nullable = false)
-    private BigDecimal totalStock; // 현재 남은 수량
+    private BigDecimal totalStock; // 현재 남은 수량, g 으로 저장됨
+
+    @Setter
+    @Builder.Default
+    private BigDecimal density = BigDecimal.ONE;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
