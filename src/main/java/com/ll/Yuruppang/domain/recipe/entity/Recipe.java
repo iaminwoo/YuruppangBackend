@@ -24,7 +24,6 @@ public class Recipe {
     @Column(unique = true)
     private String name;
 
-    @Lob
     private String description;
 
     @Column(name = "output_quantity")
