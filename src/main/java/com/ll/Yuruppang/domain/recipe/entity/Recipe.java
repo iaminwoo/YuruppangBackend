@@ -68,7 +68,7 @@ public class Recipe {
 
     public static Recipe copyOf(Recipe originalRecipe) {
         Recipe copy = Recipe.builder()
-                .name(originalRecipe.getName() + "(수정중)")
+                .name(originalRecipe.getName() + "(수정중)" + UUID.randomUUID().toString().substring(0, 8))
                 .description(originalRecipe.getDescription())
                 .outputQuantity(originalRecipe.getOutputQuantity())
                 .category(originalRecipe.getCategory())

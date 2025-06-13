@@ -92,7 +92,12 @@ public class PlanService {
                         if(planRecipe.getCustomizedRecipe().getRecipeType().equals(RecipeType.PLACEHOLDER)) {
                             recipeNames.add(planRecipe.getOriginalRecipe().getName());
                         } else {
-                            recipeNames.add(planRecipe.getCustomizedRecipe().getName());
+                            String fullName = planRecipe.getCustomizedRecipe().getName();
+
+                            int index = fullName.indexOf("(수정중)");
+                            String displayName = fullName.substring(0, index + "(수정중)".length());
+
+                            recipeNames.add(displayName);
                         }
                     }
 
