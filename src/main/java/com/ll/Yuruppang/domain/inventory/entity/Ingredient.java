@@ -55,7 +55,7 @@ public class Ingredient {
 
     public void addTotalQuantity(BigDecimal quantity) {
         if (quantity == null) throw ErrorCode.ILLEGAL_INGREDIENT_QUANTITY.throwServiceException();
-        this.totalStock = this.totalStock.add(quantity);
+        this.totalStock = this.totalStock.add(quantity.multiply(density));
     }
 
     public void changeUnitPrice(BigDecimal addedTotalPrice, BigDecimal addedQuantity) {
