@@ -7,7 +7,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -76,7 +78,11 @@ public class Recipe {
                 .recipeType(RecipeType.TEMP)
                 .build();
 
-        for(RecipePart part : originalRecipe.getParts()) {
+        List<RecipePart> partList = originalRecipe.getParts().stream()
+                .sorted(Comparator.comparing(RecipePart::getId))
+                .toList();
+
+        for(RecipePart part : partList) {
             RecipePart copiedPart = RecipePart.builder()
                     .recipe(copy)
                     .name(part.getName())
