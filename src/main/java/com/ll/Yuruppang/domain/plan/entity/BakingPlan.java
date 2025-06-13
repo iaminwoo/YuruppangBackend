@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Entity
@@ -30,7 +30,7 @@ public class BakingPlan {
 
     @Builder.Default
     @OneToMany(mappedBy = "bakingPlan", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<BakingPlanRecipe> recipes = new HashSet<>();
+    private Set<BakingPlanRecipe> recipes = new LinkedHashSet<>();
 
     public void complete() {
         this.isComplete = true;

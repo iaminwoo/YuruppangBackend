@@ -10,7 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Entity
@@ -51,7 +51,7 @@ public class Ingredient {
 
     @Builder.Default
     @OneToMany(mappedBy = "ingredient", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<RecipePartIngredient> partIngredients = new HashSet<>();
+    private Set<RecipePartIngredient> partIngredients = new LinkedHashSet<>();
 
     public void addTotalQuantity(BigDecimal quantity) {
         if (quantity == null) throw ErrorCode.ILLEGAL_INGREDIENT_QUANTITY.throwServiceException();

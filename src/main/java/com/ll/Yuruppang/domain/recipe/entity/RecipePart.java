@@ -3,7 +3,7 @@ package com.ll.Yuruppang.domain.recipe.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Entity
@@ -30,7 +30,7 @@ public class RecipePart {
 
     @OneToMany(mappedBy = "recipePart", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private Set<RecipePartIngredient> ingredients = new HashSet<>();
+    private Set<RecipePartIngredient> ingredients = new LinkedHashSet<>();
 
     public void addIngredient(RecipePartIngredient ingredient) {
         this.ingredients.add(ingredient);
