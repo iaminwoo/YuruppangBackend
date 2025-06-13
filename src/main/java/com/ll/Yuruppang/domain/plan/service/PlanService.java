@@ -93,9 +93,14 @@ public class PlanService {
                             recipeNames.add(planRecipe.getOriginalRecipe().getName());
                         } else {
                             String fullName = planRecipe.getCustomizedRecipe().getName();
+                            String displayName;
 
                             int index = fullName.indexOf("(수정중)");
-                            String displayName = fullName.substring(0, index + "(수정중)".length());
+                            if (index != -1) {
+                                displayName = fullName.substring(0, index + "(수정중)".length());
+                            } else {
+                                displayName = fullName;
+                            }
 
                             recipeNames.add(displayName);
                         }
