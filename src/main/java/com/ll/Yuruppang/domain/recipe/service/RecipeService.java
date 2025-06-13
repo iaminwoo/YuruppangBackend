@@ -123,8 +123,11 @@ public class RecipeService {
                 totalPrice = totalPrice.add(quantity.multiply(unitPrice));
             }
 
-            parts.add(new RecipePartGetDto(part.getName(), ingredients));
+            parts.add(new RecipePartGetDto(part.getId(), part.getName(), ingredients));
         }
+
+        // 파트 번호순 (등록된 순으로 정렬)
+        parts.sort(Comparator.comparing(RecipePartGetDto::partId));
 
         return new RecipeGetResponse(
                 recipe.getName(), recipe.getDescription(), recipe.getOutputQuantity(), totalPrice,

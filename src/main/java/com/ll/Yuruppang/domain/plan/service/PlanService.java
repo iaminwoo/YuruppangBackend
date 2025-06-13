@@ -3,7 +3,6 @@ package com.ll.Yuruppang.domain.plan.service;
 import com.ll.Yuruppang.domain.inventory.entity.Ingredient;
 import com.ll.Yuruppang.domain.inventory.entity.dto.request.IngredientUseRequest;
 import com.ll.Yuruppang.domain.inventory.service.IngredientService;
-import com.ll.Yuruppang.domain.plan.dto.IngredientLackTemp;
 import com.ll.Yuruppang.domain.plan.dto.PlanIdResponse;
 import com.ll.Yuruppang.domain.plan.dto.PlanSimpleResponse;
 import com.ll.Yuruppang.domain.plan.dto.complete.PlanCompleteRequest;
@@ -111,7 +110,6 @@ public class PlanService {
 
         List<ComparedPlanRecipeDetailDto> recipeDetails = new ArrayList<>();
         List<IngredientLackDto> lackIngredients = new ArrayList<>();
-        Map<Long, IngredientLackTemp> tempMap = new HashMap<>();
 
         // 레시피 별
         for(BakingPlanRecipe planRecipe : plan.getRecipes()) {
@@ -177,9 +175,12 @@ public class PlanService {
                 comparedIngredients.sort(Comparator.comparing(ComparedIngredientDto::ingredientName));
 
                 comparedParts.add(new ComparedPartDto(
-                        tempPart.getName(), tempPart.getPercent(), comparedIngredients
+                        tempPart.getId(), tempPart.getName(), tempPart.getPercent(), comparedIngredients
                 ));
             }
+
+            // 파트 번호순 (등록된 순으로 정렬)
+            comparedParts.sort(Comparator.comparing(ComparedPartDto::partId));
 
             recipeDetails.add(new ComparedPlanRecipeDetailDto(
                     originalRecipe.getId(),
