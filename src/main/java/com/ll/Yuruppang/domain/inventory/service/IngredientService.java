@@ -173,12 +173,14 @@ public class IngredientService {
     @Transactional
     public IngredientResponse recalculateQuantity(Long ingredientId, BigDecimal unitVolume, BigDecimal unitWeight) {
         Ingredient ingredient = findById(ingredientId);
-        BigDecimal newDensity = unitWeight.divide(unitVolume, 4, RoundingMode.HALF_UP);
+        // 단위가 g 이 아닌 경우만 밀도 변경 가능하도록
+        if(!ingredient.getUnit().equals(IngredientUnit.G)){
+            BigDecimal newDensity = unitWeight.divide(unitVolume, 4, RoundingMode.HALF_UP);
 
-        BigDecimal volume = ingredient.getTotalStock().divide(ingredient.getDensity(), 4, RoundingMode.HALF_UP);
-        ingredient.setTotalStock(volume.multiply(newDensity));
-        ingredient.setDensity(newDensity);
-
+            BigDecimal volume = ingredient.getTotalStock().divide(ingredient.getDensity(), 4, RoundingMode.HALF_UP);
+            ingredient.setTotalStock(volume.multiply(newDensity));
+            ingredient.setDensity(newDensity);
+        }
         return makeResponseDto(ingredient);
     }
 
