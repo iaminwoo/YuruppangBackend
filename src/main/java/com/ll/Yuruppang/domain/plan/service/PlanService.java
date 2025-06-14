@@ -182,7 +182,8 @@ public class PlanService {
                     totalPrice = totalPrice.add(unitPrice.multiply(quantity));
                 }
 
-                comparedIngredients.sort(Comparator.comparing(ComparedIngredientDto::ingredientName));
+                // 재료 id 순 (등록된 순으로 정렬)
+                comparedIngredients.sort(Comparator.comparing(ComparedIngredientDto::ingredientId));
 
                 comparedParts.add(new ComparedPartDto(
                         tempPart.getId(), tempPart.getName(), tempPart.getPercent(), comparedIngredients
