@@ -360,6 +360,34 @@ public class PlanTest {
     }
 
     @Test
+    @DisplayName("플랜 레시피 설명 변경")
+    public void changeDescription() throws Exception {
+        // 플랜 생성
+        createTestPlan();
+
+        String body = """
+                {
+                    "newDescription" : "설명 변경"
+                }
+                """;
+
+        mockMvc.perform(patch(String.format("/api/plans/%s/recipes/%s/description", planId, recipeId))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.resultCode").value("OK"))
+                .andExpect(jsonPath("$.msg").value("OK"));
+
+        Recipe customizedRecipe = planRepository.findById(planId).orElseThrow().getRecipes().stream()
+                .filter(planRecipe -> planRecipe.getOriginalRecipe().getId().equals(recipeId))
+                .findFirst().orElseThrow().getCustomizedRecipe();
+
+        // 변경 확인
+        assertEquals("설명 변경", customizedRecipe.getDescription());
+    }
+
+    @Test
     @DisplayName("플랜 삭제")
     public void deletePlan() throws Exception {
         createTestPlan();
