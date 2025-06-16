@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -28,12 +29,18 @@ public class BakingPlan {
     @Builder.Default
     private boolean isComplete = false;
 
+    private LocalDate createdAt;
+
+    private LocalDate completedAt;
+
     @Builder.Default
     @OneToMany(mappedBy = "bakingPlan", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<BakingPlanRecipe> recipes = new LinkedHashSet<>();
 
-    public void complete() {
+    public void complete(String planName) {
+        this.name = planName;
         this.isComplete = true;
+        this.completedAt = LocalDate.now();
     }
 
     public void addRecipe(BakingPlanRecipe bakingPlanRecipe) {

@@ -36,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -58,10 +59,14 @@ public class PlanService {
     }
 
     @Transactional
-    public PlanIdResponse makePlan(String memo, List<Long> recipes) {
+    public PlanIdResponse makePlan(List<Long> recipes) {
+        LocalDate today = LocalDate.now();
+        String formattedDate = today.format(DateTimeFormatter.ofPattern("yyyy년 M월 d일"));
+        String planName = formattedDate + " 등록한 베이킹 플랜";
+
         BakingPlan plan = BakingPlan.builder()
-                .name(memo)
-                .memo(memo)
+                .name(planName)
+                .createdAt(today)
                 .build();
         planRepository.save(plan);
 
@@ -109,7 +114,8 @@ public class PlanService {
                     int recipeCount = recipes.size();
 
                     return new PlanSimpleResponse(
-                            plan.getId(), plan.getName(), recipeNames, recipeCount, plan.isComplete()
+                            plan.getId(), plan.getName(), plan.getCreatedAt(), plan.getCompletedAt(),
+                            recipeNames, recipeCount, plan.isComplete()
                     );
                 });
     }
@@ -451,7 +457,11 @@ public class PlanService {
             ingredientService.useIngredient(customRecipe.getName() + " 제작", useList, LocalDate.now());
         }
 
-        plan.complete();
+        LocalDate today = LocalDate.now();
+        String formattedDate = today.format(DateTimeFormatter.ofPattern("yyyy년 M월 d일"));
+        String planName = formattedDate + " 완성한 베이킹 플랜";
+
+        plan.complete(planName);
     }
 
     private List<IngredientUseRequest> getIngredientUseRequests(Recipe recipe) {

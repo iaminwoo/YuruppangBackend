@@ -33,7 +33,7 @@ public class PlanController {
 
     @PostMapping
     public RsData<PlanIdResponse> createPlan(@Valid @RequestBody PlanCreateRequest request) {
-        return RsData.success(HttpStatus.OK, planService.makePlan(request.memo(), request.recipes()));
+        return RsData.success(HttpStatus.OK, planService.makePlan(request.recipes()));
     }
 
     @GetMapping
