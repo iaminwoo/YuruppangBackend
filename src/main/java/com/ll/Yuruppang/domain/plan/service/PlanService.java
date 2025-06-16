@@ -533,5 +533,19 @@ public class PlanService {
         plan.deleteRecipe(planRecipe);
         planRepository.save(plan);
     }
+
+    @Transactional
+    public void changeDescription(Long planId, Long recipeId, String newDescription) {
+        BakingPlan plan = findById(planId);
+
+        BakingPlanRecipe planRecipe = plan.getRecipes().stream()
+                .filter(pr -> pr.getOriginalRecipe().getId().equals(recipeId))
+                .findFirst()
+                .orElseThrow(ErrorCode.RECIPE_NOT_FOUND::throwServiceException);
+
+        Recipe customizedRecipe = getOrCreateCustomizedRecipe(planRecipe);
+        customizedRecipe.changeDescription(newDescription);
+        recipeRepository.save(customizedRecipe);
+    }
 }
 

@@ -103,4 +103,8 @@ public class Recipe {
     public void changeFavorite() {
         this.favorite = !this.favorite;
     }
+
+    public void changeDescription(String newDescription) {
+        this.description = newDescription;
+    }
 }

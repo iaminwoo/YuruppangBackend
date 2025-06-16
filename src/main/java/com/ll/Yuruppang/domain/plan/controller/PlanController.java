@@ -10,6 +10,7 @@ import com.ll.Yuruppang.domain.plan.dto.modifyPlan.PlanMemoModifyRequest;
 import com.ll.Yuruppang.domain.plan.dto.modifyPlan.PlanRecipeOutputModifyPercentRequest;
 import com.ll.Yuruppang.domain.plan.dto.modifyPlan.PlanRecipeOutputModifyRequest;
 import com.ll.Yuruppang.domain.plan.service.PlanService;
+import com.ll.Yuruppang.domain.recipe.dto.RecipeDescriptionRequest;
 import com.ll.Yuruppang.domain.recipe.dto.RecipePartDto;
 import com.ll.Yuruppang.domain.recipe.dto.RecipePartPercentDto;
 import com.ll.Yuruppang.global.response.RsData;
@@ -93,6 +94,14 @@ public class PlanController {
     public RsData<PlanDetailGetResponse> updateRecipeReset(
             @PathVariable Long planId, @PathVariable Long recipeId) {
         return RsData.success(HttpStatus.OK, planService.resetRecipe(planId, recipeId));
+    }
+
+    @PatchMapping("/{planId}/recipes/{recipeId}/description")
+    public RsData<String> changeDescription(
+            @PathVariable Long planId, @PathVariable Long recipeId, @RequestBody RecipeDescriptionRequest request
+    ) {
+        planService.changeDescription(planId, recipeId, request.newDescription());
+        return RsData.success(HttpStatus.OK, "레시피 설명이 수정되었습니다.");
     }
 
     @PatchMapping("/{planId}/memo")

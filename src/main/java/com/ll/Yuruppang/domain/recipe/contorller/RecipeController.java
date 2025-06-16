@@ -1,9 +1,6 @@
 package com.ll.Yuruppang.domain.recipe.contorller;
 
-import com.ll.Yuruppang.domain.recipe.dto.RecipeCreateRequest;
-import com.ll.Yuruppang.domain.recipe.dto.RecipeCreateResponse;
-import com.ll.Yuruppang.domain.recipe.dto.RecipeGetResponse;
-import com.ll.Yuruppang.domain.recipe.dto.RecipeNameDto;
+import com.ll.Yuruppang.domain.recipe.dto.*;
 import com.ll.Yuruppang.domain.recipe.service.RecipeService;
 import com.ll.Yuruppang.global.response.RsData;
 import jakarta.validation.Valid;
@@ -68,5 +65,4 @@ public class RecipeController {
         recipeService.favoriteRecipe(recipeId);
         return RsData.success(HttpStatus.OK, "레시피 즐겨찾기 토글이 완료되었습니다.");
     }
-
 }
