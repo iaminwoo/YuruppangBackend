@@ -171,7 +171,7 @@ public class PlanService {
                             : BigDecimal.ZERO;
 
                     comparedIngredients.add(new ComparedIngredientDto(
-                            ingredient.getId(), ingredient.getName(),
+                            ingredient.getId(), partIngredient.getId(), ingredient.getName(),
                             ingredient.getUnit(),
                             originalQuantity, customizedQuantity
                     ));
@@ -183,7 +183,7 @@ public class PlanService {
                 }
 
                 // 재료 id 순 (등록된 순으로 정렬)
-                comparedIngredients.sort(Comparator.comparing(ComparedIngredientDto::ingredientId));
+                comparedIngredients.sort(Comparator.comparing(ComparedIngredientDto::ingredientPartId));
 
                 comparedParts.add(new ComparedPartDto(
                         tempPart.getId(), tempPart.getName(), tempPart.getPercent(), comparedIngredients

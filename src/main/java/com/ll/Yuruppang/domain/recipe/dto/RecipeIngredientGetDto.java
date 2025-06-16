@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 
 public record RecipeIngredientGetDto(
         Long ingredientId,
+        Long ingredientPartId,
         String ingredientName,
         BigDecimal requiredQuantity,
         IngredientUnit unit,

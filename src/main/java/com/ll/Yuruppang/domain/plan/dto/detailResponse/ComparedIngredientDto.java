@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 
 public record ComparedIngredientDto(
         Long ingredientId,
+        Long ingredientPartId,
         String ingredientName,
         IngredientUnit unit,
         BigDecimal originalQuantity,

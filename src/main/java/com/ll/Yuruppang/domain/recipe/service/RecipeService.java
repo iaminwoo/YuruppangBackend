@@ -113,8 +113,8 @@ public class RecipeService {
             for(RecipePartIngredient partIngredient : part.getIngredients()) {
                 Ingredient ingredient = partIngredient.getIngredient();
                 ingredients.add(new RecipeIngredientGetDto(
-                        ingredient.getId(), ingredient.getName(), partIngredient.getQuantity(), ingredient.getUnit(),
-                        ingredient.getTotalStock()
+                        ingredient.getId(), partIngredient.getId(), ingredient.getName(), partIngredient.getQuantity(),
+                        ingredient.getUnit(), ingredient.getTotalStock()
                 ));
 
                 // 원가 계산
@@ -124,7 +124,7 @@ public class RecipeService {
             }
 
             // 재료 id 순 (등록된 순으로 정렬)
-            ingredients.sort(Comparator.comparing(RecipeIngredientGetDto::ingredientId));
+            ingredients.sort(Comparator.comparing(RecipeIngredientGetDto::ingredientPartId));
 
             parts.add(new RecipePartGetDto(part.getId(), part.getName(), ingredients));
         }
