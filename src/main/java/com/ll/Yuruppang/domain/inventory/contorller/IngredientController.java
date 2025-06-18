@@ -1,5 +1,6 @@
 package com.ll.Yuruppang.domain.inventory.contorller;
 
+import com.ll.Yuruppang.domain.inventory.entity.dto.request.EggBreakRequest;
 import com.ll.Yuruppang.domain.inventory.entity.dto.request.IngredientDensityRequest;
 import com.ll.Yuruppang.domain.inventory.entity.dto.request.IngredientUnitRequest;
 import com.ll.Yuruppang.domain.inventory.entity.dto.response.IngredientResponse;
@@ -10,6 +11,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/api/ingredients")
@@ -56,5 +59,11 @@ public class IngredientController {
             @PathVariable Long ingredientId, @RequestBody @Valid IngredientUnitRequest request
     ) {
         return RsData.success(HttpStatus.OK, ingredientService.changeIngredientUnit(ingredientId, request.newUnit()));
+    }
+
+    @PostMapping("/break-eggs")
+    public RsData<String> breakEggs(@RequestBody @Valid EggBreakRequest request) {
+        ingredientService.breakEggs(BigDecimal.valueOf(request.quantity()));
+        return RsData.success(HttpStatus.OK, "달걀을 깼습니다.");
     }
 }

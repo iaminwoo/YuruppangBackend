@@ -207,4 +207,25 @@ public class IngredientService {
                 ingredient.getUnitPrice(), ingredient.getTotalStock(), ingredient.getDensity()
         );
     }
+
+    @Transactional
+    public void breakEggs(BigDecimal quantity) {
+        Ingredient egg = findIngredientByName("달걀");
+        BigDecimal eggWeight = BigDecimal.valueOf(54);
+        BigDecimal eggUnitPricePerG = egg.getUnitPrice().divide(eggWeight, 2, RoundingMode.HALF_UP);
+
+        if(egg.getTotalStock().compareTo(quantity) < 0) throw ErrorCode.STOCK_NOT_ENOUGH.throwServiceException();
+
+        egg.addTotalQuantity(quantity.negate());
+
+        Ingredient whites = findIngredientByName("흰자");
+        BigDecimal whitesWeight = BigDecimal.valueOf(36);
+        whites.addTotalQuantity(quantity.multiply(whitesWeight));
+        whites.setUnitPrice(eggUnitPricePerG);
+
+        Ingredient yolks = findIngredientByName("노른자");
+        BigDecimal yolksWeight = BigDecimal.valueOf(18);
+        yolks.addTotalQuantity(quantity.multiply(yolksWeight));
+        yolks.setUnitPrice(eggUnitPricePerG);
+    }
 }

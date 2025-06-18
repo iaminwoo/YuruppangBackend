@@ -33,6 +33,7 @@ public class Ingredient {
     private IngredientUnit unit;
 
     @Column(nullable = false)
+    @Setter
     private BigDecimal unitPrice; // 단위당 가격
 
     @Setter
