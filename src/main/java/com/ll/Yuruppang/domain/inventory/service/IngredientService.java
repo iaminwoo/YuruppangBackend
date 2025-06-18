@@ -141,6 +141,10 @@ public class IngredientService {
 
     @Transactional(readOnly = true)
     public StockResponse searchStocksByKeyword(String keyword) {
+        if(keyword.equals("계란")) {
+            keyword = "달걀";
+        }
+
         List<IngredientDto> dtos = ingredientRepository
                 .findByNameContainingIgnoreCaseOrderByNameAsc(keyword)
                 .stream()
