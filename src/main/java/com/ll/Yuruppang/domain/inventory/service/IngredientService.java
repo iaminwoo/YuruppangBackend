@@ -7,6 +7,7 @@ import com.ll.Yuruppang.domain.inventory.entity.LogType;
 import com.ll.Yuruppang.domain.inventory.entity.dto.IngredientDto;
 import com.ll.Yuruppang.domain.inventory.entity.dto.request.IngredientAddRequest;
 import com.ll.Yuruppang.domain.inventory.entity.dto.request.IngredientUseRequest;
+import com.ll.Yuruppang.domain.inventory.entity.dto.response.EggResponse;
 import com.ll.Yuruppang.domain.inventory.entity.dto.response.IngredientResponse;
 import com.ll.Yuruppang.domain.inventory.entity.dto.response.StockResponse;
 import com.ll.Yuruppang.domain.inventory.repository.IngredientRepository;
@@ -227,5 +228,16 @@ public class IngredientService {
         BigDecimal yolksWeight = BigDecimal.valueOf(18);
         yolks.addTotalQuantity(quantity.multiply(yolksWeight));
         yolks.setUnitPrice(eggUnitPricePerG);
+    }
+
+    @Transactional(readOnly = true)
+    public EggResponse getEggs() {
+        Ingredient eggs = findIngredientByName("달걀");
+        BigDecimal eggWeight = BigDecimal.valueOf(54);
+        BigDecimal eggCount = eggs.getTotalStock().divide(eggWeight, 0, RoundingMode.HALF_UP);
+        Ingredient whites = findIngredientByName("흰자");
+        Ingredient yolks = findIngredientByName("노른자");
+
+        return new EggResponse(eggCount, whites.getTotalStock(), yolks.getTotalStock());
     }
 }

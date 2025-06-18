@@ -3,6 +3,7 @@ package com.ll.Yuruppang.domain.inventory.contorller;
 import com.ll.Yuruppang.domain.inventory.entity.dto.request.EggBreakRequest;
 import com.ll.Yuruppang.domain.inventory.entity.dto.request.IngredientDensityRequest;
 import com.ll.Yuruppang.domain.inventory.entity.dto.request.IngredientUnitRequest;
+import com.ll.Yuruppang.domain.inventory.entity.dto.response.EggResponse;
 import com.ll.Yuruppang.domain.inventory.entity.dto.response.IngredientResponse;
 import com.ll.Yuruppang.domain.inventory.entity.dto.response.StockResponse;
 import com.ll.Yuruppang.domain.inventory.service.IngredientService;
@@ -65,5 +66,10 @@ public class IngredientController {
     public RsData<String> breakEggs(@RequestBody @Valid EggBreakRequest request) {
         ingredientService.breakEggs(BigDecimal.valueOf(request.quantity()));
         return RsData.success(HttpStatus.OK, "달걀을 깼습니다.");
+    }
+
+    @GetMapping("/eggs")
+    public RsData<EggResponse> getEggs() {
+        return RsData.success(HttpStatus.OK, ingredientService.getEggs());
     }
 }
