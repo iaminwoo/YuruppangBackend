@@ -33,7 +33,11 @@ public enum ErrorCode {
 
     // Plan
     PLAN_NOT_FOUND(HttpStatus.NOT_FOUND, "오늘의 유루빵을 찾을 수 없습니다."),
-    RECIPE_NOT_FOUND_IN_PLAN(HttpStatus.NOT_FOUND, "해당 레시피는 포함되어 있지 않습니다.");
+    RECIPE_NOT_FOUND_IN_PLAN(HttpStatus.NOT_FOUND, "해당 레시피는 포함되어 있지 않습니다."),
+
+    // User
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),
+    PIN_NOT_MATCH(HttpStatus.UNAUTHORIZED, "PIN 이 일치하지 않습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

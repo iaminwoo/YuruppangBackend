@@ -1,0 +1,96 @@
+package com.ll.Yuruppang.domain.user.service;
+
+import com.ll.Yuruppang.domain.user.dto.response.UserResponse;
+import com.ll.Yuruppang.domain.user.entity.User;
+import com.ll.Yuruppang.domain.user.repository.UserRepository;
+import com.ll.Yuruppang.global.exceptions.ErrorCode;
+import com.ll.Yuruppang.global.security.JwtUtil;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
+
+import java.util.Map;
+
+@Service
+@RequiredArgsConstructor
+public class UserService {
+    private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
+
+    public User findById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(ErrorCode.USER_NOT_FOUND::throwServiceException);
+    }
+
+    public User findByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(ErrorCode.USER_NOT_FOUND::throwServiceException);
+    }
+
+    @Transactional
+    public UserResponse createUser(String username, String pin) {
+        String pinHash = passwordEncoder.encode(pin);
+
+        User newUser = User.builder()
+                .username(username)
+                .pinHash(pinHash)
+                .build();
+
+        userRepository.save(newUser);
+
+        return new UserResponse(newUser.getId(), newUser.getUsername());
+    }
+
+    @Transactional
+    public UserResponse login(String username, String rawPin, HttpServletResponse response) {
+        User user = findByUsername(username);
+
+        if (!passwordEncoder.matches(rawPin, user.getPinHash())) {
+            throw ErrorCode.PIN_NOT_MATCH.throwServiceException();
+        }
+
+        String accessToken = jwtUtil.createAccessToken(user.getId());
+        String refreshToken = jwtUtil.createRefreshToken(user.getId());
+
+        // ✅ 쿠키에 저장
+        addCookie(response, "accessToken", accessToken, 15 * 60); // 15분
+        addCookie(response, "refreshToken", refreshToken, 7 * 24 * 60 * 60); // 7일
+
+        return new UserResponse(user.getId(), user.getUsername());
+    }
+
+    private void addCookie(HttpServletResponse response, String name, String value, int maxAgeSeconds) {
+        Cookie cookie = new Cookie(name, value);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(maxAgeSeconds);
+        response.addCookie(cookie);
+    }
+
+    public User getUserFromToken(String token) {
+        Map<String, Object> payload = payload(token);
+
+        if (ObjectUtils.isEmpty(payload)) {
+            return null;
+        }
+
+        return User.builder()
+                .id(((Number) payload.get("id")).longValue())
+                .username((String) payload.get("username"))
+                .build();
+    }
+
+    public Map<String, Object> payload(String accessToken) {
+        Map<String, Object> parsedPayload = jwtUtil.parse(accessToken);
+
+        if (ObjectUtils.isEmpty(parsedPayload)) return null;
+
+        return Map.of("id", parsedPayload.get("id"), "username", parsedPayload.get("username"));
+    }
+}
