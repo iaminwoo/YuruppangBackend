@@ -28,16 +28,22 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponse createUser(String pin) {
+    public UserResponse createUser(String pin, String username, HttpServletResponse response) {
         String pinHash = passwordEncoder.encode(pin);
 
         User newUser = User.builder()
+                .username(username)
                 .pinHash(pinHash)
                 .build();
 
         userRepository.save(newUser);
 
-        return new UserResponse(newUser.getId());
+        return loginWithUserAndReturnResponse(newUser, response);
+    }
+
+    @Transactional
+    public UserResponse login(String rawPin, HttpServletResponse response) {
+        return loginWithUserAndReturnResponse(findByPin(rawPin), response);
     }
 
     private User findByPin(String rawPin) {
@@ -47,18 +53,15 @@ public class UserService {
                 .orElseThrow(ErrorCode.USER_NOT_FOUND::throwServiceException);
     }
 
-    @Transactional
-    public UserResponse login(String rawPin, HttpServletResponse response) {
-        User user = findByPin(rawPin);
-
-        String accessToken = jwtUtil.createAccessToken(user.getId());
-        String refreshToken = jwtUtil.createRefreshToken(user.getId());
+    private UserResponse loginWithUserAndReturnResponse(User actor, HttpServletResponse response) {
+        String accessToken = jwtUtil.createAccessToken(actor);
+        String refreshToken = jwtUtil.createRefreshToken(actor);
 
         // ✅ 쿠키에 저장
         addCookie(response, "accessToken", accessToken, 15 * 60); // 15분
         addCookie(response, "refreshToken", refreshToken, 7 * 24 * 60 * 60); // 7일
 
-        return new UserResponse(user.getId());
+        return new UserResponse(actor.getId(), actor.getUsername());
     }
 
     private void addCookie(HttpServletResponse response, String name, String value, int maxAgeSeconds) {
@@ -79,6 +82,7 @@ public class UserService {
 
         return User.builder()
                 .id(((Number) payload.get("id")).longValue())
+                .username((String) payload.get("username"))
                 .build();
     }
 
@@ -87,6 +91,6 @@ public class UserService {
 
         if (ObjectUtils.isEmpty(parsedPayload)) return null;
 
-        return Map.of("id", parsedPayload.get("id"));
+        return Map.of("id", parsedPayload.get("id"), "username", parsedPayload.get("username"));
     }
 }

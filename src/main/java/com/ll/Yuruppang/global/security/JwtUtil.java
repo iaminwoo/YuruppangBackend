@@ -1,5 +1,6 @@
 package com.ll.Yuruppang.global.security;
 
+import com.ll.Yuruppang.domain.user.entity.User;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
@@ -21,13 +22,13 @@ public class JwtUtil {
     private final long ACCESS_TOKEN_EXP = 1000L * 60 * 15; // 15분
     private final long REFRESH_TOKEN_EXP = 1000L * 60 * 60 * 24 * 7; // 7일
 
-    public String createAccessToken(Long userId) {
+    public String createAccessToken(User user) {
         SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes());
 
         Date issuedAt = new Date();
         Date expiresAt = new Date(issuedAt.getTime() + ACCESS_TOKEN_EXP);
 
-        Map<String, ? extends Serializable> body = Map.of("id", userId);
+        Map<String, ? extends Serializable> body = Map.of("id", user.getId(), "username", user.getUsername());
 
         return Jwts.builder()
                 .setClaims(body)
@@ -37,10 +38,10 @@ public class JwtUtil {
                 .compact();
     }
 
-    public String createRefreshToken(Long userId) {
+    public String createRefreshToken(User user) {
         SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes());
 
-        Map<String, ? extends Serializable> body = Map.of("id", userId);
+        Map<String, ? extends Serializable> body = Map.of("id", user.getId(), "username", user.getUsername());
 
         return Jwts.builder()
                 .setClaims(body)

@@ -21,13 +21,16 @@ public class User {
     @Column(unique = true)
     private String pinHash;
 
+    private String username;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    public User(Long id) {
+    public User(Long id, String username) {
         this.id = id;
+        this.username = username;
     }
 }

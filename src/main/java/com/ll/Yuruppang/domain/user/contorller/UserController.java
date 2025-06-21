@@ -1,5 +1,6 @@
 package com.ll.Yuruppang.domain.user.contorller;
 
+import com.ll.Yuruppang.domain.user.dto.request.UserLoginRequest;
 import com.ll.Yuruppang.domain.user.dto.request.UserRegisterRequest;
 import com.ll.Yuruppang.domain.user.dto.response.UserResponse;
 import com.ll.Yuruppang.domain.user.service.UserService;
@@ -20,12 +21,12 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/register")
-    public RsData<UserResponse> createUser(@Valid @RequestBody UserRegisterRequest request) {
-        return RsData.success(HttpStatus.OK, userService.createUser(request.pin()));
+    public RsData<UserResponse> createUser(@Valid @RequestBody UserRegisterRequest request, HttpServletResponse response) {
+        return RsData.success(HttpStatus.OK, userService.createUser(request.pin(), request.username(), response));
     }
 
     @PostMapping("/login")
-    public RsData<UserResponse> login(@Valid @RequestBody UserRegisterRequest request, HttpServletResponse response) {
+    public RsData<UserResponse> login(@Valid @RequestBody UserLoginRequest request, HttpServletResponse response) {
         return RsData.success(HttpStatus.OK, userService.login(request.pin(), response));
     }
 }

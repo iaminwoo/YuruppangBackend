@@ -99,7 +99,7 @@ public class UserContext {
                 .map(Authentication::getPrincipal)
                 .filter(principal -> principal instanceof SecurityUser)
                 .map(principal -> (SecurityUser) principal)
-                .map(securityUser -> new User(securityUser.getId()))
+                .map(securityUser -> new User(securityUser.getId(), securityUser.getUsername()))
                 .orElse(null);
     }
 

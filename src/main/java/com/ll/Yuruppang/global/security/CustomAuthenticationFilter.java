@@ -81,7 +81,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
         User user = userService.getUserFromToken(refreshToken);
         if(user == null) return null;
 
-        String newAccessToken = jwtUtil.createAccessToken(user.getId());
+        String newAccessToken = jwtUtil.createAccessToken(user);
 
         userContext.setHeader("Authorization", "Bearer " + refreshToken + " " + newAccessToken);
         userContext.setCookie("accessToken", newAccessToken);
