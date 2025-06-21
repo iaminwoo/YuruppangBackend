@@ -21,11 +21,11 @@ public class UserController {
 
     @PostMapping("/register")
     public RsData<UserResponse> createUser(@Valid @RequestBody UserRegisterRequest request) {
-        return RsData.success(HttpStatus.OK, userService.createUser(request.username(), request.pin()));
+        return RsData.success(HttpStatus.OK, userService.createUser(request.pin()));
     }
 
     @PostMapping("/login")
     public RsData<UserResponse> login(@Valid @RequestBody UserRegisterRequest request, HttpServletResponse response) {
-        return RsData.success(HttpStatus.OK, userService.login(request.username(), request.pin(), response));
+        return RsData.success(HttpStatus.OK, userService.login(request.pin(), response));
     }
 }

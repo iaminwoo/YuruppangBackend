@@ -19,9 +19,6 @@ public class User {
     private Long id;
 
     @Column(unique = true)
-    private String username;
-
-    @Column(unique = true)
     private String pinHash;
 
     @CreationTimestamp
@@ -30,8 +27,7 @@ public class User {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    public User(Long id, String username) {
+    public User(Long id) {
         this.id = id;
-        this.username = username;
     }
 }

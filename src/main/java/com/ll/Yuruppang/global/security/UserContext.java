@@ -63,7 +63,7 @@ public class UserContext {
     public void setLogin(User user) {
         UserDetails userDetails = new SecurityUser(
                 user.getId(),
-                user.getUsername(),
+                "",
                 List.of()
         );
 
@@ -99,7 +99,7 @@ public class UserContext {
                 .map(Authentication::getPrincipal)
                 .filter(principal -> principal instanceof SecurityUser)
                 .map(principal -> (SecurityUser) principal)
-                .map(securityUser -> new User(securityUser.getId(), securityUser.getUsername()))
+                .map(securityUser -> new User(securityUser.getId()))
                 .orElse(null);
     }
 
