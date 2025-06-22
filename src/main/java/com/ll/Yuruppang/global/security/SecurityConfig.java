@@ -28,6 +28,9 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
+                                // 헬스체크 요청 열림
+                                .requestMatchers("/api/health").permitAll()
+
                                 // 회원가입, 로그인 등 요청은 열림
                                 .requestMatchers("/api/users/**").permitAll()
 
