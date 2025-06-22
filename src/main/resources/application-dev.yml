@@ -17,3 +17,4 @@ spring:
 cookie:
   secure: false
   sameSite: Lax
+  domain: localhost
