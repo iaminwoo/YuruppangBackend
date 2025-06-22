@@ -34,6 +34,9 @@ public class UserContext {
     @Value("${cookie.secure}")
     private boolean secure;
 
+    @Value("${cookie.domain}")
+    private String domain;
+
     // 요청에서 헤더 얻어오기
     public String getHeader(String name) {
         return req.getHeader(name);
@@ -81,6 +84,7 @@ public class UserContext {
                 .httpOnly(true)
                 .secure(secure)
                 .sameSite(sameSite)
+                .domain(domain)
                 .path("/")
                 .maxAge(maxAgeSeconds)
                 .build();
@@ -93,6 +97,7 @@ public class UserContext {
                 .httpOnly(true)
                 .secure(secure)
                 .sameSite(sameSite)
+                .domain(domain)
                 .path("/")
                 .maxAge(0)
                 .build();
