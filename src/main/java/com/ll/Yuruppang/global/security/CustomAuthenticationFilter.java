@@ -23,7 +23,8 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
 
     private static final List<String> PUBLIC_URLS = List.of(
-
+        "/api/users/register",
+        "/api/users/login"
     );
     private static final List<String> EXCLUDE_URLS = List.of(
     );
