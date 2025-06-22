@@ -18,4 +18,4 @@ jwt:
 cookie:
   secure: true
   sameSite: None
-  domain: yuruppang-frontend.vercel.app
+  domain: .yuruppang.store

@@ -85,7 +85,8 @@ public class SecurityConfig {
         // 허용할 오리진 설정
         configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:3000",
-                "https://yuruppang-frontend.vercel.app"
+                "https://yuruppang-frontend.vercel.app",
+                "https://www.yuruppang.store"
         ));
         // 허용할 HTTP 메서드 설정
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH"));
