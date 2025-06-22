@@ -29,4 +29,10 @@ public class UserController {
     public RsData<UserResponse> login(@Valid @RequestBody UserLoginRequest request, HttpServletResponse response) {
         return RsData.success(HttpStatus.OK, userService.login(request.pin(), response));
     }
+
+    @PostMapping("/logout")
+    public RsData<String> login() {
+        userService.logout();
+        return RsData.success(HttpStatus.OK, "성공적으로 로그아웃 되었습니다.");
+    }
 }

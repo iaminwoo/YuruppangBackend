@@ -5,9 +5,11 @@ import com.ll.Yuruppang.domain.user.entity.User;
 import com.ll.Yuruppang.domain.user.repository.UserRepository;
 import com.ll.Yuruppang.global.exceptions.ErrorCode;
 import com.ll.Yuruppang.global.security.JwtUtil;
+import com.ll.Yuruppang.global.security.UserContext;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +23,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
+    private final UserContext userContext;
 
     public User findById(Long id) {
         return userRepository.findById(id)
@@ -92,5 +95,12 @@ public class UserService {
         if (ObjectUtils.isEmpty(parsedPayload)) return null;
 
         return Map.of("id", parsedPayload.get("id"), "username", parsedPayload.get("username"));
+    }
+
+    @Transactional(readOnly = true)
+    public void logout() {
+        SecurityContextHolder.clearContext();
+        userContext.deleteCookie("accessToken");
+        userContext.deleteCookie("refreshToken");
     }
 }
