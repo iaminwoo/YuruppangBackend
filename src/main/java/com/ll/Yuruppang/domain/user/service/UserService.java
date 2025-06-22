@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -77,6 +78,8 @@ public class UserService {
     }
 
     public User getUserFromToken(String token) {
+        if(Objects.isNull(token)) return null;
+
         Map<String, Object> payload = payload(token);
 
         if (ObjectUtils.isEmpty(payload)) {

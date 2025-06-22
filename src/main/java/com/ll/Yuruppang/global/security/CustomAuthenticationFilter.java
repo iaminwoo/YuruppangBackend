@@ -107,7 +107,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
         String refreshToken = userContext.getCookieValue("refreshToken");
         String accessToken = userContext.getCookieValue("accessToken");
 
-        if (refreshToken != null && accessToken != null) {
+        if (refreshToken != null) {
             return new AuthTokens(accessToken, refreshToken);
         }
 
