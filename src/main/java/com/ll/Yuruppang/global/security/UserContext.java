@@ -6,6 +6,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -27,15 +28,11 @@ public class UserContext {
     private final HttpServletResponse resp;
     private final HttpServletRequest req;
 
-    // 쿠키 생성
-    public void setCookie(String name, String value) {
-        ResponseCookie cookie = ResponseCookie.from(name, value)
-                .path("/")
-                .httpOnly(true)
-                .build();
+    @Value("${cookie.sameSite}")
+    private String sameSite;
 
-        resp.addHeader("Set-Cookie", cookie.toString());
-    }
+    @Value("${cookie.secure}")
+    private boolean secure;
 
     // 요청에서 헤더 얻어오기
     public String getHeader(String name) {
@@ -78,14 +75,27 @@ public class UserContext {
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
+    // 쿠키 저장
+    public void addCookie(String name, String value, int maxAgeSeconds) {
+        ResponseCookie cookie = ResponseCookie.from(name, value)
+                .httpOnly(true)
+                .secure(secure)
+                .sameSite(sameSite)
+                .path("/")
+                .maxAge(maxAgeSeconds)
+                .build();
+        resp.addHeader("Set-Cookie", cookie.toString());
+    }
+
     // 쿠키 삭제
     public void deleteCookie(String name) {
-        ResponseCookie cookie = ResponseCookie.from(name, null)
-                .path("/")
+        ResponseCookie cookie = ResponseCookie.from(name, "")
                 .httpOnly(true)
+                .secure(secure)
+                .sameSite(sameSite)
+                .path("/")
                 .maxAge(0)
                 .build();
-
         resp.addHeader("Set-Cookie", cookie.toString());
     }
 

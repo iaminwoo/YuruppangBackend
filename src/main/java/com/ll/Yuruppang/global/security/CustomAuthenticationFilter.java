@@ -85,7 +85,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
         String newAccessToken = jwtUtil.createAccessToken(user);
 
         userContext.setHeader("Authorization", "Bearer " + refreshToken + " " + newAccessToken);
-        userContext.setCookie("accessToken", newAccessToken);
+        userContext.addCookie("accessToken", newAccessToken, 15 * 60); // 15분
         return user;
     }
 

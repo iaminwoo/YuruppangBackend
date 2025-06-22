@@ -13,3 +13,7 @@ spring:
     console:
       enabled: true
       path: /h2-console
+
+cookie:
+  secure: false
+  sameSite: Lax

@@ -6,8 +6,6 @@ import com.ll.Yuruppang.domain.user.repository.UserRepository;
 import com.ll.Yuruppang.global.exceptions.ErrorCode;
 import com.ll.Yuruppang.global.security.JwtUtil;
 import com.ll.Yuruppang.global.security.UserContext;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,7 +30,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponse createUser(String pin, String username, HttpServletResponse response) {
+    public UserResponse createUser(String pin, String username) {
         String pinHash = passwordEncoder.encode(pin);
 
         User newUser = User.builder()
@@ -42,12 +40,12 @@ public class UserService {
 
         userRepository.save(newUser);
 
-        return loginWithUserAndReturnResponse(newUser, response);
+        return loginWithUserAndReturnResponse(newUser);
     }
 
     @Transactional
-    public UserResponse login(String rawPin, HttpServletResponse response) {
-        return loginWithUserAndReturnResponse(findByPin(rawPin), response);
+    public UserResponse login(String rawPin) {
+        return loginWithUserAndReturnResponse(findByPin(rawPin));
     }
 
     private User findByPin(String rawPin) {
@@ -57,24 +55,15 @@ public class UserService {
                 .orElseThrow(ErrorCode.USER_NOT_FOUND::throwServiceException);
     }
 
-    private UserResponse loginWithUserAndReturnResponse(User actor, HttpServletResponse response) {
+    private UserResponse loginWithUserAndReturnResponse(User actor) {
         String accessToken = jwtUtil.createAccessToken(actor);
         String refreshToken = jwtUtil.createRefreshToken(actor);
 
         // ✅ 쿠키에 저장
-        addCookie(response, "accessToken", accessToken, 15 * 60); // 15분
-        addCookie(response, "refreshToken", refreshToken, 7 * 24 * 60 * 60); // 7일
+        userContext.addCookie("accessToken", accessToken, 15 * 60); // 15분
+        userContext.addCookie("refreshToken", refreshToken, 7 * 24 * 60 * 60); // 7일
 
         return new UserResponse(actor.getId(), actor.getUsername());
-    }
-
-    private void addCookie(HttpServletResponse response, String name, String value, int maxAgeSeconds) {
-        Cookie cookie = new Cookie(name, value);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(maxAgeSeconds);
-        response.addCookie(cookie);
     }
 
     public User getUserFromToken(String token) {
