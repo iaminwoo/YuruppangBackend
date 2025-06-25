@@ -435,26 +435,27 @@ public class PlanService {
 
         // 임시 레시피 정식 등록
         for(BakingPlanRecipe planRecipe : plan.getRecipes()) {
-            Recipe customRecipe;
-            if(planRecipe.getCustomizedRecipe().getRecipeType().equals(RecipeType.TEMP)) {
-                Recipe recipe = planRecipe.getOriginalRecipe();
+            Recipe originalRecipe = planRecipe.getOriginalRecipe();
+            Recipe customRecipe = planRecipe.getCustomizedRecipe();
+            Recipe usedRecipe;
 
+            if(customRecipe.getRecipeType().equals(RecipeType.TEMP)) {
                 PlanRecipeCompleteDto matchedDto = request.recipes().stream()
-                        .filter(dto -> recipe.getId().equals(dto.recipeId()))
+                        .filter(dto -> originalRecipe.getId().equals(dto.recipeId()))
                         .findFirst()
                         .orElseThrow(ErrorCode.TEMP_RECIPE_NOT_REGISTERED::throwServiceException);
 
-                customRecipe = planRecipe.getCustomizedRecipe();
-
                 customRecipe.update(matchedDto.newName(), matchedDto.newDescription(), customRecipe.getOutputQuantity());
                 customRecipe.register();
+
+                usedRecipe = customRecipe;
             } else {
-                customRecipe = planRecipe.getOriginalRecipe();
+                usedRecipe = originalRecipe;
             }
 
             // 소비 기록 처리
-            List<IngredientUseRequest> useList = getIngredientUseRequests(customRecipe);
-            ingredientService.useIngredient(customRecipe.getName() + " 제작", useList, LocalDate.now());
+            List<IngredientUseRequest> useList = getIngredientUseRequests(usedRecipe);
+            ingredientService.useIngredient(usedRecipe.getName() + " 제작", useList, LocalDate.now());
         }
 
         LocalDate today = LocalDate.now();
@@ -465,20 +466,21 @@ public class PlanService {
     }
 
     private List<IngredientUseRequest> getIngredientUseRequests(Recipe recipe) {
-        List<IngredientUseRequest> useList = new ArrayList<>();
+        // 한 레시피에서 사용된 재료는 통합하기 위해서 map 사용
+        Map<String, BigDecimal> ingredientMap = new HashMap<>();
 
-        for(RecipePart part : recipe.getParts()) {
-            for(RecipePartIngredient partIngredient : part.getIngredients()) {
-                BigDecimal requiredQuantity = partIngredient.getQuantity();
-                useList.add(
-                        new IngredientUseRequest(
-                                partIngredient.getIngredient().getName(), requiredQuantity.toString()
-                        )
-                );
+        for (RecipePart part : recipe.getParts()) {
+            for (RecipePartIngredient partIngredient : part.getIngredients()) {
+                String name = partIngredient.getIngredient().getName();
+                BigDecimal quantity = partIngredient.getQuantity();
+
+                ingredientMap.put(name, ingredientMap.getOrDefault(name, BigDecimal.ZERO).add(quantity));
             }
         }
 
-        return useList;
+        return ingredientMap.entrySet().stream()
+                .map(e -> new IngredientUseRequest(e.getKey(), e.getValue().toPlainString()))
+                .collect(Collectors.toList());
     }
 
     @Transactional
