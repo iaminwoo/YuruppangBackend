@@ -56,7 +56,17 @@ public class Ingredient {
 
     public void addTotalQuantity(BigDecimal quantity) {
         if (quantity == null) throw ErrorCode.ILLEGAL_INGREDIENT_QUANTITY.throwServiceException();
-        this.totalStock = this.totalStock.add(quantity.multiply(density));
+
+        BigDecimal calculatedQuantity;
+        if(quantity.compareTo(BigDecimal.ZERO) > 0) {
+            // 양수 (구매) 의 경우는 단위가 다 다르므로 밀도 계산
+            calculatedQuantity = quantity.multiply(density);
+        } else {
+            // 음수 (소비) 의 단위는 g 으로 통일이므로 밀도 계산 없음
+            calculatedQuantity = quantity;
+        }
+
+        this.totalStock = this.totalStock.add(calculatedQuantity);
     }
 
     public void changeUnitPrice(BigDecimal addedTotalPrice, BigDecimal addedQuantity) {
