@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -73,6 +74,16 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
 
         if (user != null) {
             userContext.setLogin(user);
+
+            String username = user.getUsername();
+            String method = request.getMethod();
+
+            if(username.equals("Guest") && !method.equals("GET")) {
+                response.setStatus(HttpStatus.FORBIDDEN.value());
+                response.setContentType("text/plain;charset=UTF-8");
+                response.getWriter().write("게스트 계정은 수정할 수 없습니다.");
+                return;
+            }
         }
 
         filterChain.doFilter(request, response);
