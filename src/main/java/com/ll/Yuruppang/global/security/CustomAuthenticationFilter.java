@@ -25,7 +25,8 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
 
     private static final List<String> PUBLIC_URLS = List.of(
         "/api/users/register",
-        "/api/users/login"
+        "/api/users/login",
+        "/api/users/logout"
     );
     private static final List<String> EXCLUDE_URLS = List.of(
     );
