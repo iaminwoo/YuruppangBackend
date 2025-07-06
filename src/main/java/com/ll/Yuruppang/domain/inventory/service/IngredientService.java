@@ -15,6 +15,7 @@ import com.ll.Yuruppang.domain.inventory.repository.LogRepository;
 import com.ll.Yuruppang.domain.recipe.repository.PartIngredientRepository;
 import com.ll.Yuruppang.global.exceptions.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -127,7 +128,7 @@ public class IngredientService {
 
     @Transactional(readOnly = true)
     public StockResponse getStocks(int offset, int limit) {
-        List<Ingredient> all = ingredientRepository.findAll();
+        List<Ingredient> all = ingredientRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
         List<IngredientDto> dtoList = new ArrayList<>();
 
         for (Ingredient ingredient : all) {
