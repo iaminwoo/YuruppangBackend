@@ -5,6 +5,7 @@ import com.ll.Yuruppang.domain.inventory.entity.dto.IngredientDto;
 import java.util.List;
 
 public record StockResponse(
-        List<IngredientDto> ingredients
+        List<IngredientDto> ingredients,
+        int totalPage
 ) {
 }

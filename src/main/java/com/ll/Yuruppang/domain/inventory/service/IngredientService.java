@@ -21,10 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -129,7 +126,7 @@ public class IngredientService {
     }
 
     @Transactional(readOnly = true)
-    public StockResponse getStocks() {
+    public StockResponse getStocks(int offset, int limit) {
         List<Ingredient> all = ingredientRepository.findAll();
         List<IngredientDto> dtoList = new ArrayList<>();
 
@@ -137,21 +134,32 @@ public class IngredientService {
             dtoList.add(makeIngredientDto(ingredient));
         }
 
-        return new StockResponse(dtoList);
+        return makeResponseWithPaging(dtoList, offset, limit);
     }
 
     @Transactional(readOnly = true)
-    public StockResponse searchStocksByKeyword(String keyword) {
-        if(keyword.equals("계란")) {
-            keyword = "달걀";
+    public StockResponse searchStocksByKeyword(String rawKeyword, int offset, int limit) {
+        List<String> keywords = Arrays.stream(rawKeyword.split(",")).map(String::trim).toList();
+
+        Set<IngredientDto> uniqueDtos = new HashSet<>();
+
+        for(String keyword : keywords) {
+            if(keyword.equals("계란")) {
+                keyword = "달걀";
+            }
+
+            ingredientRepository
+                    .findByNameContainingIgnoreCaseOrderByNameAsc(keyword)
+                    .stream()
+                    .map(this::makeIngredientDto)
+                    .forEach(uniqueDtos::add);
         }
 
-        List<IngredientDto> dtos = ingredientRepository
-                .findByNameContainingIgnoreCaseOrderByNameAsc(keyword)
-                .stream()
-                .map(this::makeIngredientDto)
-                .collect(Collectors.toList());
-        return new StockResponse(dtos);
+        List<IngredientDto> resultDtos = uniqueDtos.stream()
+                .sorted(Comparator.comparing(IngredientDto::ingredientId))
+                .toList();
+
+        return makeResponseWithPaging(resultDtos, offset, limit);
     }
 
     private IngredientDto makeIngredientDto(Ingredient ingredient) {
@@ -159,6 +167,17 @@ public class IngredientService {
                 ingredient.getId(), ingredient.getName(), ingredient.getUnit().getValue(),
                 String.valueOf(ingredient.getUnitPrice()), String.valueOf(ingredient.getTotalStock())
         );
+    }
+
+    private StockResponse makeResponseWithPaging(List<IngredientDto> list, int offset, int limit) {
+        int total = list.size();
+        int fromIndex = Math.min(offset, total);
+        int toIndex = Math.min(offset + limit, total);
+        List<IngredientDto> resultList = list.subList(fromIndex, toIndex);
+
+        int totalPage = (int) Math.ceil((double) total / limit);
+
+        return new StockResponse(resultList, totalPage);
     }
 
     @Transactional

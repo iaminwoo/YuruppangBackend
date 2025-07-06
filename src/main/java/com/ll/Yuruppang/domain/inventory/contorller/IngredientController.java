@@ -22,17 +22,22 @@ public class IngredientController {
 
     private final IngredientService ingredientService;
 
+    private static final int ITEM_LIMIT = 10;
+
     @GetMapping
     public RsData<StockResponse> getStocks(
-            @RequestParam(required = false) String keyword
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "0") int page
     ) {
+        int offset = page * ITEM_LIMIT;
+
         StockResponse response;
         if (keyword == null || keyword.isBlank()) {
             // 키워드 없이 호출될 때
-            response = ingredientService.getStocks();
+            response = ingredientService.getStocks(offset, ITEM_LIMIT);
         } else {
             // 키워드가 있을 때
-            response = ingredientService.searchStocksByKeyword(keyword.trim());
+            response = ingredientService.searchStocksByKeyword(keyword.trim(), offset, ITEM_LIMIT);
         }
         return RsData.success(HttpStatus.OK, response);
     }
@@ -40,7 +45,8 @@ public class IngredientController {
     @DeleteMapping
     public RsData<StockResponse> cleanStocks() {
         ingredientService.cleanup();
-        return RsData.success(HttpStatus.OK, ingredientService.getStocks());
+        final int defaultOffset = 0;
+        return RsData.success(HttpStatus.OK, ingredientService.getStocks(defaultOffset, ITEM_LIMIT));
     }
 
     @GetMapping("/{ingredientId}")
