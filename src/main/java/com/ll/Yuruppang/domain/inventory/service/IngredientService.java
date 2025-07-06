@@ -157,7 +157,7 @@ public class IngredientService {
         }
 
         List<IngredientDto> resultDtos = uniqueDtos.stream()
-                .sorted(Comparator.comparing(IngredientDto::ingredientId))
+                .sorted(Comparator.comparing(IngredientDto::ingredientId).reversed())
                 .toList();
 
         return makeResponseWithPaging(resultDtos, offset, limit);
