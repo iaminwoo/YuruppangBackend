@@ -16,8 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -190,43 +188,54 @@ public class RecipeService {
 
     @Transactional
     public void modifyRecipe(
-            Long recipeId, String newName, String newDescription,
-            int newOutputQuantity, List<RecipePartDto> newParts, Long newCategoryId
+            Long recipeId,
+            String newName,
+            String newDescription,
+            int newOutputQuantity,
+            List<RecipePartDto> newParts,
+            Long newCategoryId
     ) {
+        // 레시피 기본 정보 업데이트
         Recipe recipe = findById(recipeId);
         recipe.update(newName, newDescription, newOutputQuantity);
         categoryService.connectRecipe(recipe, newCategoryId);
 
-        Map<String, RecipePart> existingParts = recipe.getParts().stream()
-                .collect(Collectors.toMap(RecipePart::getName, Function.identity()));
-
-        Set<RecipePart> updatedParts = new HashSet<>();
+        List<RecipePart> updatedParts = new ArrayList<>();
 
         for (RecipePartDto newPartDto : newParts) {
-            RecipePart part = existingParts.getOrDefault(newPartDto.partName(),
-                    RecipePart.builder().recipe(recipe).name(newPartDto.partName()).build());
+            // 기존 파트 가져오거나 새로 생성
+            RecipePart part = recipe.getParts().stream()
+                    .filter(p -> p.getName().equals(newPartDto.partName()))
+                    .findFirst()
+                    .orElse(RecipePart.builder()
+                            .recipe(recipe)
+                            .name(newPartDto.partName())
+                            .build()
+                    );
 
-            validateIngredientsDuplication(newPartDto.ingredients());
-
-            Map<String, RecipePartIngredient> existingIngredients = part.getIngredients().stream()
-                    .collect(Collectors.toMap(ri -> ri.getIngredient().getName(), Function.identity()));
-
+            // 기존 재료 모두 제거 (orphanRemoval 설정 필요)
             part.getIngredients().clear();
 
+            // DTO 순서대로 RecipePartIngredient 생성
             for (RecipeIngredientDto newIngredientDto : newPartDto.ingredients()) {
                 Ingredient ingredient = ingredientService.findOrCreate(
-                        newIngredientDto.ingredientName(), newIngredientDto.unit()
+                        newIngredientDto.ingredientName(),
+                        newIngredientDto.unit()
                 );
 
-                RecipePartIngredient partIngredient = existingIngredients.getOrDefault(ingredient.getName(),
-                        RecipePartIngredient.builder().recipePart(part).ingredient(ingredient).build());
-
-                partIngredient.setQuantity(newIngredientDto.quantity());
+                RecipePartIngredient partIngredient = RecipePartIngredient.builder()
+                        .recipePart(part)
+                        .ingredient(ingredient)  // 기존 Ingredient 재사용
+                        .quantity(newIngredientDto.quantity())
+                        .build();
 
                 part.addIngredient(partIngredient);
             }
+
             updatedParts.add(part);
         }
+
+        // 레시피에 파트 순서 그대로 반영
         recipe.getParts().clear();
         recipe.getParts().addAll(updatedParts);
     }
