@@ -155,27 +155,40 @@ public class PlanService {
                 RecipePart originalPart = originalPartMap.get(tempPart.getName());
                 List<ComparedIngredientDto> comparedIngredients = new ArrayList<>();
                 List<RecipePartIngredient> tempIngredients = new ArrayList<>(tempPart.getIngredients());
+                Set<RecipePartIngredient> usedOriginalPis = new HashSet<>();
 
-                for (int i = 0; i < tempIngredients.size(); i++) {
-                    RecipePartIngredient partIngredient = tempIngredients.get(i);
+                for (RecipePartIngredient partIngredient : tempIngredients) {
                     Ingredient ingredient = partIngredient.getIngredient();
                     BigDecimal customizedQuantity = partIngredient.getQuantity();
 
                     RecipePartIngredient originalPi = null;
+
                     if (originalPart != null) {
+                        // 동일 ingredientId를 가진 원본 재료 목록
                         List<RecipePartIngredient> originalPis = originalPart.getIngredients().stream()
                                 .filter(pi -> pi.getIngredient().getId().equals(ingredient.getId()))
                                 .toList();
-                        if (i < originalPis.size()) {
-                            originalPi = originalPis.get(i);
+
+                        // 아직 사용되지 않은 첫 번째 원본 재료 선택
+                        originalPi = originalPis.stream()
+                                .filter(pi -> !usedOriginalPis.contains(pi))
+                                .findFirst()
+                                .orElse(null);
+
+                        if (originalPi != null) {
+                            usedOriginalPis.add(originalPi); // 사용 표시
                         }
                     }
 
                     BigDecimal originalQuantity = originalPi != null ? originalPi.getQuantity() : BigDecimal.ZERO;
 
                     comparedIngredients.add(new ComparedIngredientDto(
-                            ingredient.getId(), partIngredient.getId(), ingredient.getName(),
-                            ingredient.getUnit(), originalQuantity, customizedQuantity
+                            ingredient.getId(),
+                            partIngredient.getId(),
+                            ingredient.getName(),
+                            ingredient.getUnit(),
+                            originalQuantity,
+                            customizedQuantity
                     ));
 
                     // 원가 계산
