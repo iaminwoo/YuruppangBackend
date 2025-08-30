@@ -15,6 +15,7 @@ import com.ll.Yuruppang.global.openFeign.GenAIClient;
 import com.ll.Yuruppang.global.openFeign.ParseAiJson;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -262,6 +263,9 @@ public class RecipeService {
     @Autowired
     private GenAIClient genAIClient;
 
+    @Value("${ai.apiKey}")
+    private String apiKey;
+
     @Transactional
     public RecipeAutoRegisterResponse autoRegister(String text) {
         List<CategoryResponse> allCategories = categoryService.getAllCategories();
@@ -306,8 +310,6 @@ public class RecipeService {
                         "responseMimeType", "application/json"
                 )
         );
-
-        String apiKey = "AIzaSyBlcnWc0Q2QP3L-VDRMcI40RqEevdpqSv0";
 
         AiResponse aiResponse = genAIClient.generateRecipe(apiKey, requestBody);
 

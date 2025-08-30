@@ -15,6 +15,9 @@ spring:
 jwt:
   secret: ${JWT_SECRET}
 
+ai:
+  apiKey: ${AI_APIKEY}
+
 cookie:
   secure: true
   sameSite: None
