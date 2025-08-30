@@ -194,7 +194,8 @@ public class PlanService {
                     // 원가 계산
                     BigDecimal unitPrice = partIngredient.getIngredient().getUnitPrice();
                     BigDecimal quantity = partIngredient.getQuantity();
-                    totalPrice = totalPrice.add(unitPrice.multiply(quantity));
+                    BigDecimal density = partIngredient.getIngredient().getDensity();
+                    totalPrice = totalPrice.add(unitPrice.multiply(quantity.divide(density, 2, RoundingMode.HALF_UP)));
                 }
 
                 // 재료 id 순 (등록된 순으로 정렬)
