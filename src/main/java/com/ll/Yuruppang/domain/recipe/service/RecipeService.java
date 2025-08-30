@@ -3,12 +3,18 @@ package com.ll.Yuruppang.domain.recipe.service;
 import com.ll.Yuruppang.domain.inventory.entity.Ingredient;
 import com.ll.Yuruppang.domain.inventory.service.IngredientService;
 import com.ll.Yuruppang.domain.recipe.dto.*;
+import com.ll.Yuruppang.domain.recipe.dto.autoRegister.RecipeAutoRegisterResponse;
+import com.ll.Yuruppang.domain.recipe.dto.category.CategoryResponse;
 import com.ll.Yuruppang.domain.recipe.entity.*;
 import com.ll.Yuruppang.domain.recipe.repository.RecipePartRepository;
 import com.ll.Yuruppang.domain.recipe.repository.RecipeRepository;
 import com.ll.Yuruppang.global.exceptions.ErrorCode;
 import com.ll.Yuruppang.global.exceptions.ServiceException;
+import com.ll.Yuruppang.global.openFeign.AiResponse;
+import com.ll.Yuruppang.global.openFeign.GenAIClient;
+import com.ll.Yuruppang.global.openFeign.ParseAiJson;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,6 +30,7 @@ public class RecipeService {
     private final RecipePartRepository recipePartRepository;
     private final IngredientService ingredientService;
     private final CategoryService categoryService;
+    private final ParseAiJson parseAiJson;
 
     public Recipe findById(Long recipeId) {
         return recipeRepository.findById(recipeId)
@@ -250,5 +257,73 @@ public class RecipeService {
     public void favoriteRecipe(Long recipeId) {
         Recipe recipe = findById(recipeId);
         recipe.changeFavorite();
+    }
+
+    @Autowired
+    private GenAIClient genAIClient;
+
+    @Transactional
+    public RecipeAutoRegisterResponse autoRegister(String text) {
+        List<CategoryResponse> allCategories = categoryService.getAllCategories();
+
+        StringBuilder categories = new StringBuilder();
+        for(CategoryResponse categoryResponse : allCategories) {
+            String name = categoryResponse.categoryName();
+            Long id = categoryResponse.categoryId();
+            categories.append(id).append(":").append(name).append("/");
+        }
+
+        Map<String, Object> requestBody = Map.of(
+                "contents", List.of(
+                        Map.of(
+                                "parts", List.of(
+                                        Map.of(
+                                                "text",
+                                                "아래 레시피를 읽고, 필요한 재료를 JSON으로 변환해줘. " +
+                                                        "* 카테고리 목록 : " + categories + "\n" +
+                                                        "JSON 구조는 반드시 다음과 같아야 해:\n" +
+                                                        "{\n" +
+                                                        "  \"name\": \"레시피 이름 (문자열)\",\n" +
+                                                        "  \"description\": \"레시피 설명 (문자열, 선택 가능)\",\n" +
+                                                        "  \"outputQuantity\": 정수,\n" +
+                                                        "  \"categoryId\": 정수 (카테고리 목록에서 선택, 비슷한게 없으면 0으로),\n" +
+                                                        "  \"parts\": [\n" +
+                                                        "    {\n" +
+                                                        "      \"partName\": \"파트 이름\",\n" +
+                                                        "      \"ingredients\": [\n" +
+                                                        "        { \"ingredientName\": \"재료 이름\", \"quantity\": 정수, \"unit\": \"g|ml|ea\" }\n" +
+                                                        "      ]\n" +
+                                                        "    }\n" +
+                                                        "  ]\n" +
+                                                        "}\n" +
+                                                        "quantity가 2-3처럼 범위일 경우 평균값을 정수로 사용하고, unit은 g, ml, 개 중 하나로 맞춰줘.\n" +
+                                                        "레시피: " + text
+                                        )
+                                )
+                        )
+                ),
+                "generationConfig", Map.of(
+                        "responseMimeType", "application/json"
+                )
+        );
+
+        String apiKey = "AIzaSyBlcnWc0Q2QP3L-VDRMcI40RqEevdpqSv0";
+
+        AiResponse aiResponse = genAIClient.generateRecipe(apiKey, requestBody);
+
+        // 첫 번째 후보의 첫 번째 파트 텍스트(JSON) 가져오기
+        String jsonString = null;
+        if (aiResponse.getCandidates() != null && !aiResponse.getCandidates().isEmpty()) {
+            AiResponse.Candidate candidate = aiResponse.getCandidates().getFirst();
+            if (candidate.getContent() != null && candidate.getContent().getParts() != null && !candidate.getContent().getParts().isEmpty()) {
+                jsonString = candidate.getContent().getParts().getFirst().getText();
+            }
+        }
+
+        if (jsonString == null) {
+            throw new RuntimeException("AI 응답에서 텍스트를 가져오지 못했습니다.");
+        }
+
+        return parseAiJson.parse(jsonString);
     }
 }

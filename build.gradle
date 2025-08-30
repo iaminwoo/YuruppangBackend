@@ -47,6 +47,9 @@ dependencies {
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5' // JSON 파싱을 위한 모듈
 
 	testImplementation 'org.springframework.security:spring-security-test'
+
+	implementation 'com.google.genai:google-genai:1.15.0'
+	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:4.2.1'
 }
 
 tasks.named('test') {

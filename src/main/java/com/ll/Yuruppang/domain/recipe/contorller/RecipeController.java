@@ -1,6 +1,11 @@
 package com.ll.Yuruppang.domain.recipe.contorller;
 
-import com.ll.Yuruppang.domain.recipe.dto.*;
+import com.ll.Yuruppang.domain.recipe.dto.RecipeCreateRequest;
+import com.ll.Yuruppang.domain.recipe.dto.RecipeCreateResponse;
+import com.ll.Yuruppang.domain.recipe.dto.RecipeGetResponse;
+import com.ll.Yuruppang.domain.recipe.dto.RecipeNameDto;
+import com.ll.Yuruppang.domain.recipe.dto.autoRegister.RecipeAutoRegisterRequest;
+import com.ll.Yuruppang.domain.recipe.dto.autoRegister.RecipeAutoRegisterResponse;
 import com.ll.Yuruppang.domain.recipe.service.RecipeService;
 import com.ll.Yuruppang.global.response.RsData;
 import jakarta.validation.Valid;
@@ -24,6 +29,11 @@ public class RecipeController {
                 request.name(), request.description(), request.outputQuantity(),
                 request.parts(), request.categoryId()
         ));
+    }
+
+    @PostMapping("/auto-register")
+    public RsData<RecipeAutoRegisterResponse> autoRegisterRecipe(@Valid @RequestBody RecipeAutoRegisterRequest request) {
+        return RsData.success(HttpStatus.OK, recipeService.autoRegister(request.text()));
     }
 
     @GetMapping("/{recipeId}")
