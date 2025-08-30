@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 @Service
@@ -126,7 +127,8 @@ public class RecipeService {
                 // 원가 계산
                 BigDecimal quantity = partIngredient.getQuantity();
                 BigDecimal unitPrice = partIngredient.getIngredient().getUnitPrice();
-                totalPrice = totalPrice.add(quantity.multiply(unitPrice));
+                BigDecimal density = partIngredient.getIngredient().getDensity();
+                totalPrice = totalPrice.add(quantity.multiply(unitPrice.divide(density, 2, RoundingMode.HALF_UP)));
             }
 
             // 재료 id 순 (등록된 순으로 정렬)
