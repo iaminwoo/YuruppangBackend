@@ -153,33 +153,29 @@ public class PlanService {
             for (RecipePart tempPart : sortedParts) {
 
                 RecipePart originalPart = originalPartMap.get(tempPart.getName());
-
-                Map<Long, RecipePartIngredient> originalIngredientMap;
-                if (originalPart != null) {
-                    originalIngredientMap = originalPart.getIngredients().stream()
-                            .collect(Collectors.toMap(
-                                    partIngredient -> partIngredient.getIngredient().getId(), partIngredient -> partIngredient
-                            ));
-                } else {
-                    originalIngredientMap = new HashMap<>();
-                }
-
                 List<ComparedIngredientDto> comparedIngredients = new ArrayList<>();
-                // 재료 별
-                for(RecipePartIngredient partIngredient : tempPart.getIngredients()) {
+                List<RecipePartIngredient> tempIngredients = new ArrayList<>(tempPart.getIngredients());
+
+                for (int i = 0; i < tempIngredients.size(); i++) {
+                    RecipePartIngredient partIngredient = tempIngredients.get(i);
                     Ingredient ingredient = partIngredient.getIngredient();
                     BigDecimal customizedQuantity = partIngredient.getQuantity();
 
-                    RecipePartIngredient originalPi = originalIngredientMap.get(ingredient.getId());
+                    RecipePartIngredient originalPi = null;
+                    if (originalPart != null) {
+                        List<RecipePartIngredient> originalPis = originalPart.getIngredients().stream()
+                                .filter(pi -> pi.getIngredient().getId().equals(ingredient.getId()))
+                                .toList();
+                        if (i < originalPis.size()) {
+                            originalPi = originalPis.get(i);
+                        }
+                    }
 
-                    BigDecimal originalQuantity = originalPi != null
-                            ? originalPi.getQuantity()
-                            : BigDecimal.ZERO;
+                    BigDecimal originalQuantity = originalPi != null ? originalPi.getQuantity() : BigDecimal.ZERO;
 
                     comparedIngredients.add(new ComparedIngredientDto(
                             ingredient.getId(), partIngredient.getId(), ingredient.getName(),
-                            ingredient.getUnit(),
-                            originalQuantity, customizedQuantity
+                            ingredient.getUnit(), originalQuantity, customizedQuantity
                     ));
 
                     // 원가 계산

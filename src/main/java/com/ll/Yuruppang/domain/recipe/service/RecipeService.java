@@ -71,7 +71,7 @@ public class RecipeService {
 
         for(RecipePartDto dto : parts) {
             List<RecipeIngredientDto> ingredients = dto.ingredients();
-            validateIngredientsDuplication(ingredients);
+//            validateIngredientsDuplication(ingredients);
 
             RecipePart part = RecipePart.builder()
                     .recipe(recipe)
