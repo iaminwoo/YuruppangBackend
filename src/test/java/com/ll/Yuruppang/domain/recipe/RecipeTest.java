@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ll.Yuruppang.domain.recipe.entity.Recipe;
 import com.ll.Yuruppang.domain.recipe.repository.RecipeRepository;
+import com.ll.Yuruppang.global.TestAuthHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,7 +13,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class RecipeTest {
 
     @Autowired
-    private MockMvc mockMvc;
+    private TestAuthHelper testAuthHelper;
 
     @Autowired
     private RecipeRepository recipeRepository;
@@ -36,17 +37,26 @@ public class RecipeTest {
     private static Long recipeId;
 
     @BeforeEach
-    public void addCategory() throws Exception {
+    public void setUp() throws Exception {
+        createTestUser();
+        addCategory();
+    }
+
+    private void createTestUser() throws Exception {
+        testAuthHelper.createTestUser();
+    }
+
+    private void addCategory() throws Exception {
         String createBody = """
                 {
                   "name": "테스트 카테고리"
                 }
                 """;
 
-        String response = mockMvc.perform(post("/api/categories")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(createBody))
-                .andExpect(status().isOk())
+        MockHttpServletRequestBuilder request = post("/api/categories")
+                .content(createBody);
+
+        String response = testAuthHelper.requestWithAuth(request)
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
@@ -103,10 +113,10 @@ public class RecipeTest {
     @Test
     @DisplayName("레시피 등록")
     public void createRecipe() throws Exception {
-        mockMvc.perform(post("/api/recipes")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(getCreateBody(15)))
-                .andExpect(status().isOk())
+        MockHttpServletRequestBuilder request = post("/api/recipes")
+                .content(getCreateBody(15));
+
+        testAuthHelper.requestWithAuth(request)
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.resultCode").value("OK"))
                 .andExpect(jsonPath("$.msg").value("OK"))
@@ -114,10 +124,10 @@ public class RecipeTest {
     }
 
     private void addRecipe() throws Exception {
-        String response = mockMvc.perform(post("/api/recipes")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(getCreateBody(15)))
-                .andExpect(status().isOk())
+        MockHttpServletRequestBuilder request = post("/api/recipes")
+                .content(getCreateBody(15));
+
+        String response = testAuthHelper.requestWithAuth(request)
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
@@ -133,10 +143,10 @@ public class RecipeTest {
     public void modifyRecipe() throws Exception {
         addRecipe();
 
-        mockMvc.perform(put("/api/recipes/" + recipeId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(getCreateBody(20)))
-                .andExpect(status().isOk())
+        MockHttpServletRequestBuilder request = put("/api/recipes/" + recipeId)
+                .content(getCreateBody(20));
+
+        testAuthHelper.requestWithAuth(request)
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.resultCode").value("OK"))
                 .andExpect(jsonPath("$.msg").value("OK"))
@@ -151,16 +161,18 @@ public class RecipeTest {
     public void deleteRecipe() throws Exception {
         addRecipe();
 
-        mockMvc.perform(delete("/api/recipes/" + recipeId)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
+        MockHttpServletRequestBuilder request = delete("/api/recipes/" + recipeId);
+
+        testAuthHelper.requestWithAuth(request)
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.resultCode").value("OK"))
                 .andExpect(jsonPath("$.msg").value("OK"))
                 .andExpect(jsonPath("$.data").value("레시피가 삭제되었습니다."));
 
         // 삭제 확인
-        mockMvc.perform(get("/api/recipes/" + recipeId))
+        MockHttpServletRequestBuilder request2 = get("/api/recipes/" + recipeId);
+
+        testAuthHelper.requestWithAuthNoStatus(request2)
                 .andExpect(status().isNotFound());
     }
 
@@ -169,9 +181,9 @@ public class RecipeTest {
     public void favoriteRecipe() throws Exception {
         addRecipe();
 
-        mockMvc.perform(patch("/api/recipes/" + recipeId + "/favorite")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
+        MockHttpServletRequestBuilder request = patch("/api/recipes/" + recipeId + "/favorite");
+
+        testAuthHelper.requestWithAuth(request)
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.resultCode").value("OK"))
                 .andExpect(jsonPath("$.msg").value("OK"))

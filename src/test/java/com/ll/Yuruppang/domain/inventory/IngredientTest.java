@@ -1,8 +1,9 @@
 package com.ll.Yuruppang.domain.inventory;
 
 import com.ll.Yuruppang.domain.inventory.entity.Ingredient;
-import com.ll.Yuruppang.domain.inventory.repository.IngredientRepository;
 import com.ll.Yuruppang.domain.inventory.service.IngredientService;
+import com.ll.Yuruppang.global.TestAuthHelper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,11 +11,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -23,12 +25,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class IngredientTest {
 
     @Autowired
-    private MockMvc mockMvc;
+    private TestAuthHelper testAuthHelper;
 
     @Autowired
-    private IngredientRepository ingredientRepository;
-    @Autowired
     private IngredientService ingredientService;
+
+    @BeforeEach
+    public void createTestUser() throws Exception {
+        testAuthHelper.createTestUser();
+    }
 
     private String createPurchaseJson() {
         return """
@@ -48,9 +53,10 @@ public class IngredientTest {
     }
 
     private void addIngredient() throws Exception {
-        mockMvc.perform(post("/api/ingredientLogs/purchase")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(createPurchaseJson()));
+        MockHttpServletRequestBuilder request = post("/api/ingredientLogs/purchase")
+                .content(createPurchaseJson());
+
+        testAuthHelper.requestWithAuth(request);
     }
 
     @Test
@@ -67,10 +73,10 @@ public class IngredientTest {
                 }
                 """;
 
-        mockMvc.perform(post("/api/ingredients/" + ingredient.getId() + "/recalculate-quantity")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isOk())
+        MockHttpServletRequestBuilder request = post("/api/ingredients/" + ingredient.getId() + "/recalculate-quantity")
+                .content(body);
+
+        testAuthHelper.requestWithAuth(request)
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.resultCode").value("OK"))
                 .andExpect(jsonPath("$.msg").value("OK"))

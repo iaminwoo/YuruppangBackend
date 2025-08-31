@@ -11,6 +11,7 @@ import com.ll.Yuruppang.domain.recipe.entity.Recipe;
 import com.ll.Yuruppang.domain.recipe.entity.RecipePart;
 import com.ll.Yuruppang.domain.recipe.entity.RecipePartIngredient;
 import com.ll.Yuruppang.domain.recipe.entity.RecipeType;
+import com.ll.Yuruppang.global.TestAuthHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,7 +20,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -37,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class PlanTest {
 
     @Autowired
-    private MockMvc mockMvc;
+    private TestAuthHelper testAuthHelper;
 
     @Autowired
     private PlanRepository planRepository;
@@ -49,6 +50,16 @@ public class PlanTest {
     private static Long categoryId;
     private static Long recipeId;
     private static Long planId;
+
+    @BeforeEach
+    public void setUp() throws Exception {
+        createTestUser();
+        addRecipe();
+    }
+
+    public void createTestUser() throws Exception {
+        testAuthHelper.createTestUser();
+    }
 
     private String getRecipeCreateBody() {
         return String.format("""
@@ -93,7 +104,6 @@ public class PlanTest {
                 """, categoryId);
     }
 
-    @BeforeEach
     public void addRecipe() throws Exception {
         String createBody = """
                 {
@@ -101,10 +111,10 @@ public class PlanTest {
                 }
                 """;
 
-        String response = mockMvc.perform(post("/api/categories")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(createBody))
-                .andExpect(status().isOk())
+        MockHttpServletRequestBuilder request = post("/api/categories")
+                .content(createBody);
+
+        String response = testAuthHelper.requestWithAuth(request)
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
@@ -114,10 +124,10 @@ public class PlanTest {
         JsonNode dataNode = rootNode.get("data");
         categoryId = dataNode.get("categoryId").asLong();
 
-        String response2 = mockMvc.perform(post("/api/recipes")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(getRecipeCreateBody()))
-                .andExpect(status().isOk())
+        MockHttpServletRequestBuilder request2 = post("/api/recipes")
+                .content(getRecipeCreateBody());
+
+        String response2 = testAuthHelper.requestWithAuth(request2)
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
@@ -135,10 +145,10 @@ public class PlanTest {
                 }
                 """, recipeId);
 
-        String response = mockMvc.perform(post("/api/plans")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isOk())
+        MockHttpServletRequestBuilder request = post("/api/plans")
+                .content(body);
+
+        String response = testAuthHelper.requestWithAuth(request)
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.resultCode").value("OK"))
                 .andExpect(jsonPath("$.msg").value("OK"))
@@ -163,10 +173,10 @@ public class PlanTest {
                 }
                 """, recipeId);
 
-        mockMvc.perform(post("/api/plans")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isOk())
+        MockHttpServletRequestBuilder request = post("/api/plans")
+                .content(body);
+
+        testAuthHelper.requestWithAuth(request)
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.resultCode").value("OK"))
                 .andExpect(jsonPath("$.msg").value("OK"))
@@ -185,10 +195,10 @@ public class PlanTest {
                 }
                 """;
 
-        mockMvc.perform(patch(String.format("/api/plans/%s/recipes/%s/output", planId, recipeId))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isOk())
+        MockHttpServletRequestBuilder request = patch(String.format("/api/plans/%s/recipes/%s/output", planId, recipeId))
+                .content(body);
+
+        testAuthHelper.requestWithAuth(request)
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.resultCode").value("OK"))
                 .andExpect(jsonPath("$.msg").value("OK"));
@@ -209,10 +219,10 @@ public class PlanTest {
                 }
                 """;
 
-        mockMvc.perform(patch(String.format("/api/plans/%s/recipes/%s/output/percent", planId, recipeId))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isOk())
+        MockHttpServletRequestBuilder request = patch(String.format("/api/plans/%s/recipes/%s/output/percent", planId, recipeId))
+                .content(body);
+
+        testAuthHelper.requestWithAuth(request)
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.resultCode").value("OK"))
                 .andExpect(jsonPath("$.msg").value("OK"));
@@ -277,10 +287,10 @@ public class PlanTest {
                 ]
                 """;
 
-        mockMvc.perform(patch(String.format("/api/plans/%s/recipes/%s/ingredients", planId, recipeId))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isOk())
+        MockHttpServletRequestBuilder request = patch(String.format("/api/plans/%s/recipes/%s/ingredients", planId, recipeId))
+                .content(body);
+
+        testAuthHelper.requestWithAuth(request)
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.resultCode").value("OK"))
                 .andExpect(jsonPath("$.msg").value("OK"));
@@ -304,10 +314,10 @@ public class PlanTest {
                 ]
                 """;
 
-        mockMvc.perform(patch(String.format("/api/plans/%s/recipes/%s/ingredients/percent", planId, recipeId))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isOk())
+        MockHttpServletRequestBuilder request = patch(String.format("/api/plans/%s/recipes/%s/ingredients/percent", planId, recipeId))
+                .content(body);
+
+        testAuthHelper.requestWithAuth(request)
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.resultCode").value("OK"))
                 .andExpect(jsonPath("$.msg").value("OK"));
@@ -344,9 +354,9 @@ public class PlanTest {
         // 플랜 생성 및 수정
         modifyIngredientPercent();
 
-        mockMvc.perform(patch(String.format("/api/plans/%s/recipes/%s/reset", planId, recipeId))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
+        MockHttpServletRequestBuilder request = patch(String.format("/api/plans/%s/recipes/%s/reset", planId, recipeId));
+
+        testAuthHelper.requestWithAuth(request)
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.resultCode").value("OK"))
                 .andExpect(jsonPath("$.msg").value("OK"));
@@ -371,10 +381,10 @@ public class PlanTest {
                 }
                 """;
 
-        mockMvc.perform(patch(String.format("/api/plans/%s/recipes/%s/description", planId, recipeId))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isOk())
+        MockHttpServletRequestBuilder request = patch(String.format("/api/plans/%s/recipes/%s/description", planId, recipeId))
+                .content(body);
+
+        testAuthHelper.requestWithAuth(request)
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.resultCode").value("OK"))
                 .andExpect(jsonPath("$.msg").value("OK"));
@@ -392,16 +402,18 @@ public class PlanTest {
     public void deletePlan() throws Exception {
         createTestPlan();
 
-        mockMvc.perform(delete(String.format("/api/plans/%s", planId))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
+        MockHttpServletRequestBuilder request = delete(String.format("/api/plans/%s", planId));
+
+        testAuthHelper.requestWithAuth(request)
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.resultCode").value("OK"))
                 .andExpect(jsonPath("$.msg").value("OK"))
                 .andExpect(jsonPath("$.data").value("오늘의 유루빵이 삭제되었습니다."));
 
         // 삭제 확인
-        mockMvc.perform(get("/api/plans/" + planId))
+        MockHttpServletRequestBuilder request2 = get("/api/plans/" + planId);
+
+        testAuthHelper.requestWithAuthNoStatus(request2)
                 .andExpect(status().isNotFound());
     }
 
@@ -419,10 +431,10 @@ public class PlanTest {
                 }
                 """; // 수정되는 레시피가 없어서 빈 배열
 
-        mockMvc.perform(post(String.format("/api/plans/%s", planId))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isOk())
+        MockHttpServletRequestBuilder request = post(String.format("/api/plans/%s", planId))
+                .content(body);
+
+        testAuthHelper.requestWithAuth(request)
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.resultCode").value("OK"))
                 .andExpect(jsonPath("$.msg").value("OK"))
@@ -475,10 +487,10 @@ public class PlanTest {
     }
 
     private void createIngredient() throws Exception {
-        mockMvc.perform(post("/api/ingredientLogs/purchase")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(createPurchaseJson()))
-                .andExpect(status().isOk())
+        MockHttpServletRequestBuilder request = post("/api/ingredientLogs/purchase")
+                .content(createPurchaseJson());
+
+        testAuthHelper.requestWithAuth(request)
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.resultCode").value("OK"))
                 .andExpect(jsonPath("$.msg").value("OK"))

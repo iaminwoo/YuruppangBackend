@@ -12,3 +12,8 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+
+cookie:
+  secure: false
+  sameSite: Lax
+  domain: localhost

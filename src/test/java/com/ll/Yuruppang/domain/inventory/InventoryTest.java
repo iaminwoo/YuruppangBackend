@@ -4,6 +4,8 @@ import com.ll.Yuruppang.domain.inventory.entity.Ingredient;
 import com.ll.Yuruppang.domain.inventory.entity.IngredientLog;
 import com.ll.Yuruppang.domain.inventory.repository.IngredientRepository;
 import com.ll.Yuruppang.domain.inventory.repository.LogRepository;
+import com.ll.Yuruppang.global.TestAuthHelper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,14 +13,15 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -27,12 +30,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class InventoryTest {
 
     @Autowired
-    private MockMvc mockMvc;
+    private TestAuthHelper testAuthHelper;
 
     @Autowired
     private IngredientRepository ingredientRepository;
     @Autowired
     private LogRepository logRepository;
+
+    @BeforeEach
+    public void createTestUser() throws Exception {
+        testAuthHelper.createTestUser();
+    }
 
     private String createPurchaseJson() {
         return """
@@ -73,9 +81,10 @@ public class InventoryTest {
     }
 
     private void addIngredient() throws Exception {
-        mockMvc.perform(post("/api/ingredientLogs/purchase")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(createPurchaseJson()));
+        MockHttpServletRequestBuilder request = post("/api/ingredientLogs/purchase")
+                .content(createPurchaseJson());
+
+        testAuthHelper.requestWithAuth(request);
     }
 
     private void assertStockEquals(String name, int expectedQuantity) {
@@ -87,10 +96,11 @@ public class InventoryTest {
     @Test
     @DisplayName("구매 기록 등록, 재고 증가")
     public void purchaseTest() throws Exception {
-        mockMvc.perform(post("/api/ingredientLogs/purchase")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(createPurchaseJson()))
-                .andExpect(status().isOk())
+        MockHttpServletRequestBuilder request = post("/api/ingredientLogs/purchase")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(createPurchaseJson());
+
+        testAuthHelper.requestWithAuth(request)
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.resultCode").value("OK"))
                 .andExpect(jsonPath("$.msg").value("OK"))
@@ -105,10 +115,11 @@ public class InventoryTest {
     public void useTest() throws Exception {
         addIngredient();
 
-        mockMvc.perform(post("/api/ingredientLogs/use")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(createUseJson()))
-                .andExpect(status().isOk())
+        MockHttpServletRequestBuilder request = post("/api/ingredientLogs/use")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(createUseJson());
+
+        testAuthHelper.requestWithAuth(request)
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.resultCode").value("OK"))
                 .andExpect(jsonPath("$.msg").value("OK"))
@@ -123,11 +134,12 @@ public class InventoryTest {
     public void modifyTest() throws Exception {
         addIngredient();
 
+        MockHttpServletRequestBuilder request = post("/api/ingredientLogs/use")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(createUseJson());
+
         // 소비 기록
-        mockMvc.perform(post("/api/ingredientLogs/use")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(createUseJson()))
-                .andExpect(status().isOk())
+        testAuthHelper.requestWithAuth(request)
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
 
         // 기록 id 찾기
@@ -146,10 +158,11 @@ public class InventoryTest {
                 }
                 """;
 
-        mockMvc.perform(put("/api/ingredientLogs/" + logId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(modifyBody))
-                .andExpect(status().isOk())
+        MockHttpServletRequestBuilder request2 = put("/api/ingredientLogs/" + logId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(modifyBody);
+
+        testAuthHelper.requestWithAuth(request2)
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
 
         assertStockEquals("밀가루", 1500); // 1000 + 500
@@ -167,10 +180,10 @@ public class InventoryTest {
                 .findFirst().orElseThrow();
         Long logId = log.getId();
 
+        MockHttpServletRequestBuilder request = delete("/api/ingredientLogs/" + logId);
+
         // 밀가루 기록만 삭제
-        mockMvc.perform(delete("/api/ingredientLogs/" + logId)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
+        testAuthHelper.requestWithAuth(request)
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
 
         assertStockEquals("밀가루", 0);
