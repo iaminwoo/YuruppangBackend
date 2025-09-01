@@ -11,7 +11,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   app:
-    build: .
+    image: inwooinwoo/yuruppang:latest
     container_name: yuruppang-app
     restart: always
     env_file:
