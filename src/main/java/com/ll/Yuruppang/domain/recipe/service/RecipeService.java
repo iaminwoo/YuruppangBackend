@@ -341,6 +341,7 @@ public class RecipeService {
         return parseAiJson.parse(jsonString);
     }
 
+    @Transactional
     public RecipeAutoRegisterResponse autoRegisterWithUrl(String url) {
         String categories = getAllCategories();
 
