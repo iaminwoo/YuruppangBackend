@@ -27,6 +27,8 @@ services:
     image: inwooinwoo/fastapi-app:latest
     container_name: fastapi-app
     restart: always
+    env_file:
+      - .env
     depends_on:
       - db
       - app
