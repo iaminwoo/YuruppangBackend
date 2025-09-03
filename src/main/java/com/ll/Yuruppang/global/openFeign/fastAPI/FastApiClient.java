@@ -5,7 +5,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "fastApiClient", url = "http://localhost:8000/generate-recipe")
+@FeignClient(name = "fastApiClient", url = "http://fastapi-app:8000/generate-recipe")
 public interface FastApiClient {
 
     @PostMapping(consumes = "application/json")
