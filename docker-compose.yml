@@ -27,7 +27,7 @@ services:
     restart: always
     depends_on:
       - db
-      - backend
+      - app
 
 volumes:
   postgres_data:
