@@ -1,4 +1,4 @@
-package com.ll.Yuruppang.global.openFeign;
+package com.ll.Yuruppang.global.openFeign.gemini;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

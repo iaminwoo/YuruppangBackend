@@ -10,9 +10,11 @@ import com.ll.Yuruppang.domain.recipe.repository.RecipePartRepository;
 import com.ll.Yuruppang.domain.recipe.repository.RecipeRepository;
 import com.ll.Yuruppang.global.exceptions.ErrorCode;
 import com.ll.Yuruppang.global.exceptions.ServiceException;
-import com.ll.Yuruppang.global.openFeign.AiResponse;
-import com.ll.Yuruppang.global.openFeign.GenAIClient;
-import com.ll.Yuruppang.global.openFeign.ParseAiJson;
+import com.ll.Yuruppang.global.openFeign.fastAPI.FastApiClient;
+import com.ll.Yuruppang.global.openFeign.fastAPI.VideoURLRequest;
+import com.ll.Yuruppang.global.openFeign.gemini.AiResponse;
+import com.ll.Yuruppang.global.openFeign.gemini.GenAIClient;
+import com.ll.Yuruppang.global.openFeign.gemini.ParseAiJson;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -264,12 +266,13 @@ public class RecipeService {
 
     @Autowired
     private GenAIClient genAIClient;
+    @Autowired
+    private FastApiClient fastApiClient;
 
     @Value("${ai.apiKey}")
     private String apiKey;
 
-    @Transactional
-    public RecipeAutoRegisterResponse autoRegister(String text) {
+    private String getAllCategories() {
         List<CategoryResponse> allCategories = categoryService.getAllCategories();
 
         StringBuilder categories = new StringBuilder();
@@ -278,6 +281,13 @@ public class RecipeService {
             Long id = categoryResponse.categoryId();
             categories.append(id).append(":").append(name).append("/");
         }
+
+        return categories.toString();
+    }
+
+    @Transactional
+    public RecipeAutoRegisterResponse autoRegister(String text) {
+        String categories = getAllCategories();
 
         Map<String, Object> requestBody = Map.of(
                 "contents", List.of(
@@ -329,5 +339,12 @@ public class RecipeService {
         }
 
         return parseAiJson.parse(jsonString);
+    }
+
+    public RecipeAutoRegisterResponse autoRegisterWithUrl(String url) {
+        String categories = getAllCategories();
+
+        // url 과 카테고리 해서 FastAPI 서비스로 요청
+        return fastApiClient.generateRecipe(new VideoURLRequest(url, categories));
     }
 }

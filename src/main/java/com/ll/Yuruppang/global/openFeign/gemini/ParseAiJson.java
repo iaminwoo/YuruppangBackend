@@ -1,4 +1,4 @@
-package com.ll.Yuruppang.global.openFeign;
+package com.ll.Yuruppang.global.openFeign.gemini;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ll.Yuruppang.domain.inventory.entity.IngredientUnit;

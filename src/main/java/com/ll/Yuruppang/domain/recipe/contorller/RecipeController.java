@@ -32,8 +32,12 @@ public class RecipeController {
     }
 
     @PostMapping("/auto-register")
-    public RsData<RecipeAutoRegisterResponse> autoRegisterRecipe(@Valid @RequestBody RecipeAutoRegisterRequest request) {
-        return RsData.success(HttpStatus.OK, recipeService.autoRegister(request.text()));
+    public RsData<RecipeAutoRegisterResponse> autoRegisterRecipe(@RequestBody RecipeAutoRegisterRequest request) {
+        if(request.url().isEmpty()) {
+            return RsData.success(HttpStatus.OK, recipeService.autoRegister(request.text()));
+        }
+
+        return RsData.success(HttpStatus.OK, recipeService.autoRegisterWithUrl(request.url()));
     }
 
     @GetMapping("/{recipeId}")

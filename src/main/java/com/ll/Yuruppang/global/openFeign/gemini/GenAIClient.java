@@ -1,4 +1,4 @@
-package com.ll.Yuruppang.global.openFeign;
+package com.ll.Yuruppang.global.openFeign.gemini;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
