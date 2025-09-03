@@ -22,7 +22,7 @@ services:
       - "8080:8080"
 
   fastapi:
-    build: inwooinwoo/fastapi:latest
+    build: inwooinwoo/fastapi-app:latest
     container_name: fastapi-app
     restart: always
     depends_on:
