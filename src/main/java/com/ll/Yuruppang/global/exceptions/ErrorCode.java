@@ -26,6 +26,7 @@ public enum ErrorCode {
     RECIPE_NOT_TEMP(HttpStatus.BAD_REQUEST, "임시 레시피가 아닙니다."),
     TEMP_RECIPE_NOT_REGISTERED(HttpStatus.BAD_REQUEST, "임시 레시피가 등록되지 않았습니다."),
     PLACEHOLDER_NOT_FOUND(HttpStatus.NOT_FOUND, "플레이스홀더 레시피를 찾을 수 없습니다."),
+    PAN_NOT_FOUND(HttpStatus.NOT_FOUND, "틀을 찾을 수 없습니다."),
 
     // Category
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "카테고리를 찾을 수 없습니다."),
