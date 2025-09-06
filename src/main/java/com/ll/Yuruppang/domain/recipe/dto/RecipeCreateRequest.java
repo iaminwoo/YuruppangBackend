@@ -16,5 +16,6 @@ public record RecipeCreateRequest(
         @Valid
         List<RecipePartDto> parts,
         @NotNull(message = "카테고리는 필수 입니다.")
-        Long categoryId
+        Long categoryId,
+        Long panId
 ) { }

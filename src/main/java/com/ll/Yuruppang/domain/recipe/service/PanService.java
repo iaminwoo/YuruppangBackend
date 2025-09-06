@@ -12,11 +12,16 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class PanService {
     private final PanRepository panRepository;
+
+    public Optional<Pan> findById(Long panId) {
+        return panRepository.findById(panId);
+    }
 
     @Transactional
     public PanResponse createRoundPan(BigDecimal radius, BigDecimal height) {
@@ -60,10 +65,18 @@ public class PanService {
 
     @Transactional
     public PanResponse getPanDetail(Long panId) {
-        Pan pan = panRepository.findById(panId).orElseThrow(ErrorCode.PAN_NOT_FOUND::throwServiceException);
-        return new PanResponse(
-                pan.getId(), pan.getPanType(), pan.getMeasurements(), pan.getVolume()
-        );
+        Pan pan = findById(panId).orElseThrow(ErrorCode.PAN_NOT_FOUND::throwServiceException);
+        return makePanResponse(pan);
+    }
+
+    public PanResponse makePanResponse(Pan pan) {
+        if(pan != null) {
+            return new PanResponse(
+                    pan.getId(), pan.getPanType(), pan.getMeasurements(), pan.getVolume()
+            );
+        } else {
+            return new PanResponse(0L, PanType.ROUND, "", BigDecimal.ZERO);
+        }
     }
 
     @Transactional
@@ -73,4 +86,5 @@ public class PanService {
                         pan.getId(), pan.getPanType(), pan.getMeasurements(), pan.getVolume()
                 )).toList();
     }
+
 }

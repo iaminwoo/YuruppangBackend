@@ -32,17 +32,15 @@ import java.util.*;
 public class RecipeService {
     private final RecipeRepository recipeRepository;
     private final RecipePartRepository recipePartRepository;
+
     private final IngredientService ingredientService;
     private final CategoryService categoryService;
+    private final PanService panService;
+
     private final ParseAiJson parseAiJson;
 
     public Recipe findById(Long recipeId) {
         return recipeRepository.findById(recipeId)
-                .orElseThrow(ErrorCode.RECIPE_NOT_FOUND::throwServiceException);
-    }
-
-    public Recipe findByName(String name) {
-        return recipeRepository.findByName(name)
                 .orElseThrow(ErrorCode.RECIPE_NOT_FOUND::throwServiceException);
     }
 
@@ -51,19 +49,10 @@ public class RecipeService {
                 .orElseThrow(ErrorCode.PLACEHOLDER_NOT_FOUND::throwServiceException);
     }
 
-    private void validateIngredientsDuplication(List<RecipeIngredientDto> ingredients) {
-        Set<String> nameSet = new HashSet<>();
-        for (RecipeIngredientDto dto : ingredients) {
-            String name = dto.ingredientName().trim();
-            if (!nameSet.add(name)) {
-                throw new IllegalArgumentException("중복된 재료 이름: " + name);
-            }
-        }
-    }
-
     @Transactional
     public RecipeCreateResponse createRecipe(
-            String name, String description,int outputQuantity, List<RecipePartDto> parts, Long categoryId
+            String name, String description,int outputQuantity,
+            List<RecipePartDto> parts, Long categoryId, Long panId
     ) {
         Recipe recipe = Recipe.builder()
                 .name(name)
@@ -71,11 +60,14 @@ public class RecipeService {
                 .outputQuantity(outputQuantity)
                 .build();
         categoryService.connectRecipe(recipe, categoryId);
+
+        Optional<Pan> panOptional = panService.findById(panId);
+        panOptional.ifPresent(recipe::setPan);
+
         recipeRepository.save(recipe);
 
         for(RecipePartDto dto : parts) {
             List<RecipeIngredientDto> ingredients = dto.ingredients();
-//            validateIngredientsDuplication(ingredients);
 
             RecipePart part = RecipePart.builder()
                     .recipe(recipe)
@@ -143,7 +135,8 @@ public class RecipeService {
         parts.sort(Comparator.comparing(RecipePartGetDto::partId));
 
         return new RecipeGetResponse(
-                recipe.getName(), recipe.getDescription(), recipe.getOutputQuantity(), totalPrice,
+                recipe.getName(), recipe.getDescription(), recipe.getOutputQuantity(),
+                panService.makePanResponse(recipe.getPan()), totalPrice,
                 parts, recipe.getCategory().getName(), recipe.getCategory().getId()
         );
     }
@@ -204,6 +197,7 @@ public class RecipeService {
             String newName,
             String newDescription,
             int newOutputQuantity,
+            Long panId,
             List<RecipePartDto> newParts,
             Long newCategoryId
     ) {
@@ -211,6 +205,9 @@ public class RecipeService {
         Recipe recipe = findById(recipeId);
         recipe.update(newName, newDescription, newOutputQuantity);
         categoryService.connectRecipe(recipe, newCategoryId);
+
+        Optional<Pan> panOptional = panService.findById(panId);
+        panOptional.ifPresent(recipe::setPan);
 
         List<RecipePart> updatedParts = new ArrayList<>();
 

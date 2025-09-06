@@ -30,6 +30,10 @@ public class Recipe {
     @Column(name = "output_quantity")
     private int outputQuantity;
 
+    @ManyToOne
+    @JoinColumn(name = "pan_id")
+    private Pan pan;
+
     @Builder.Default
     @Enumerated(EnumType.STRING)
     private RecipeType recipeType = RecipeType.NORMAL;

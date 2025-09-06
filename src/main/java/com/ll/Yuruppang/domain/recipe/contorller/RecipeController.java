@@ -27,7 +27,7 @@ public class RecipeController {
     public RsData<RecipeCreateResponse> createRecipe(@Valid @RequestBody RecipeCreateRequest request) {
         return RsData.success(HttpStatus.OK, recipeService.createRecipe(
                 request.name(), request.description(), request.outputQuantity(),
-                request.parts(), request.categoryId()
+                request.parts(), request.categoryId(), request.panId()
         ));
     }
 
@@ -62,8 +62,8 @@ public class RecipeController {
     @PutMapping("/{recipeId}")
     public RsData<String> modifyRecipe(@Valid @RequestBody RecipeCreateRequest request, @PathVariable Long recipeId) {
         recipeService.modifyRecipe(
-                recipeId, request.name(), request.description(),
-                request.outputQuantity(), request.parts(), request.categoryId()
+                recipeId, request.name(), request.description(), request.outputQuantity(),
+                request.panId(), request.parts(), request.categoryId()
         );
         return RsData.success(HttpStatus.OK, "레시피가 수정되었습니다.");
     }

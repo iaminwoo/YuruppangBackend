@@ -22,6 +22,7 @@ import com.ll.Yuruppang.domain.recipe.entity.RecipePart;
 import com.ll.Yuruppang.domain.recipe.entity.RecipePartIngredient;
 import com.ll.Yuruppang.domain.recipe.entity.RecipeType;
 import com.ll.Yuruppang.domain.recipe.repository.RecipeRepository;
+import com.ll.Yuruppang.domain.recipe.service.PanService;
 import com.ll.Yuruppang.domain.recipe.service.RecipeService;
 import com.ll.Yuruppang.global.exceptions.ErrorCode;
 import jakarta.persistence.EntityManager;
@@ -46,9 +47,11 @@ import java.util.stream.Collectors;
 public class PlanService {
     private final PlanRepository planRepository;
     private final PlanRecipeRepository planRecipeRepository;
+
     private final RecipeService recipeService;
     private final RecipeRepository recipeRepository;
     private final IngredientService ingredientService;
+    private final PanService panService;
 
     @PersistenceContext
     private EntityManager em;
@@ -216,6 +219,7 @@ public class PlanService {
                     totalPrice,
                     tempRecipe.getName(),
                     tempRecipe.getDescription(),
+                    panService.makePanResponse(tempRecipe.getPan()),
                     isTemp,
                     originalRecipe.getOutputQuantity(),
                     tempRecipe.getOutputQuantity(),
@@ -395,7 +399,7 @@ public class PlanService {
     private void modifyRecipe(Recipe customizedRecipe, List<RecipePartDto> parts) {
         recipeService.modifyRecipe(customizedRecipe.getId(),
                 customizedRecipe.getName(), customizedRecipe.getDescription(), customizedRecipe.getOutputQuantity(),
-                parts, customizedRecipe.getCategory().getId());
+                customizedRecipe.getPan().getId(), parts, customizedRecipe.getCategory().getId());
     }
 
     @Transactional
