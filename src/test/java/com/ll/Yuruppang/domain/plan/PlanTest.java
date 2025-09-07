@@ -508,4 +508,79 @@ public class PlanTest {
         // 박력분 재고 1000g 에서 500g 으로 감소 확인
         assertEquals(new BigDecimal(500), ingredient.getTotalStock().setScale(0, RoundingMode.HALF_UP));
     }
+
+    private void createTestPan() throws Exception {
+        String body = """
+                {
+                    "panType": "SQUARE",
+                    "width": 10,
+                    "length": 10,
+                    "height": 10
+                }
+                """;
+
+        MockHttpServletRequestBuilder request = post("/api/pans")
+                .content(body);
+
+        testAuthHelper.requestWithAuth(request)
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+    }
+
+    private void createTestPan2() throws Exception {
+        String body = """
+                {
+                    "panType": "SQUARE",
+                    "width": 20,
+                    "length": 10,
+                    "height": 10
+                }
+                """;
+
+        MockHttpServletRequestBuilder request = post("/api/pans")
+                .content(body);
+
+        testAuthHelper.requestWithAuth(request)
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+    }
+
+    @Test
+    @DisplayName("틀 변경 테스트")
+    void changePan() throws Exception {
+        createTestPlan();
+        createTestPan();
+
+        String body = """
+                {
+                    "panId" : "1"
+                }
+                """;
+
+        MockHttpServletRequestBuilder request = patch(String.format("/api/plans/%s/recipes/%s/pan", planId, recipeId))
+                .content(body);
+
+        testAuthHelper.requestWithAuth(request)
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.resultCode").value("OK"))
+                .andExpect(jsonPath("$.msg").value("OK"))
+                .andExpect(jsonPath("$.data.recipeDetails[0].pan.panId").value(1))
+                .andExpect(jsonPath("$.data.recipeDetails[0].comparedParts[0].comparedIngredients[0].customizedQuantity").value(500));
+
+        createTestPan2();
+
+        String body2 = """
+                {
+                    "panId" : "2"
+                }
+                """;
+
+        MockHttpServletRequestBuilder request2 = patch(String.format("/api/plans/%s/recipes/%s/pan", planId, recipeId))
+                .content(body2);
+
+        testAuthHelper.requestWithAuth(request2)
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.resultCode").value("OK"))
+                .andExpect(jsonPath("$.msg").value("OK"))
+                .andExpect(jsonPath("$.data.recipeDetails[0].pan.panId").value(2))
+                .andExpect(jsonPath("$.data.recipeDetails[0].comparedParts[0].comparedIngredients[0].customizedQuantity").value(1000));
+    }
 }
