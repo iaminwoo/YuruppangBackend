@@ -17,10 +17,7 @@ import com.ll.Yuruppang.domain.plan.repository.PlanRepository;
 import com.ll.Yuruppang.domain.recipe.dto.RecipeIngredientDto;
 import com.ll.Yuruppang.domain.recipe.dto.RecipePartDto;
 import com.ll.Yuruppang.domain.recipe.dto.RecipePartPercentDto;
-import com.ll.Yuruppang.domain.recipe.entity.Recipe;
-import com.ll.Yuruppang.domain.recipe.entity.RecipePart;
-import com.ll.Yuruppang.domain.recipe.entity.RecipePartIngredient;
-import com.ll.Yuruppang.domain.recipe.entity.RecipeType;
+import com.ll.Yuruppang.domain.recipe.entity.*;
 import com.ll.Yuruppang.domain.recipe.repository.RecipeRepository;
 import com.ll.Yuruppang.domain.recipe.service.PanService;
 import com.ll.Yuruppang.domain.recipe.service.RecipeService;
@@ -397,9 +394,13 @@ public class PlanService {
     }
 
     private void modifyRecipe(Recipe customizedRecipe, List<RecipePartDto> parts) {
+        Long panId = customizedRecipe.getPan() != null
+                ? customizedRecipe.getPan().getId()
+                : 0L;
+
         recipeService.modifyRecipe(customizedRecipe.getId(),
                 customizedRecipe.getName(), customizedRecipe.getDescription(), customizedRecipe.getOutputQuantity(),
-                customizedRecipe.getPan().getId(), parts, customizedRecipe.getCategory().getId());
+                panId, parts, customizedRecipe.getCategory().getId());
     }
 
     @Transactional
@@ -572,6 +573,62 @@ public class PlanService {
         Recipe customizedRecipe = getOrCreateCustomizedRecipe(planRecipe);
         customizedRecipe.changeDescription(newDescription);
         recipeRepository.save(customizedRecipe);
+    }
+
+    @Transactional
+    public PlanDetailGetResponse panChange(Long planId, Long recipeId, Long panId) {
+        recipePanChange(planId, recipeId, panId);
+//        updateGoalQuantity(customizedRecipe, newOutput);
+        em.flush();
+        em.clear();
+        return getPlanDetail(planId);
+    }
+
+    private void recipePanChange(Long planId, Long recipeId, Long panId) {
+        Recipe customizedRecipe = getCustomizedRecipe(planId, recipeId);
+        Pan pan = panService.findById(panId);
+        List<RecipePartDto> partDtos = makePartsWithPan(customizedRecipe, pan);
+
+        recipeService.modifyRecipe(
+                customizedRecipe.getId(), customizedRecipe.getName(), customizedRecipe.getDescription(),
+                customizedRecipe.getOutputQuantity(), panId, partDtos, customizedRecipe.getCategory().getId()
+        );
+    }
+
+    private List<RecipePartDto> makePartsWithPan(Recipe customizedRecipe, Pan newPan) {
+        Map<String, RecipePart> partMap = customizedRecipe.getParts().stream()
+                .collect(Collectors.toMap(RecipePart::getName, Function.identity()));
+
+        Set<RecipePart> partSet = customizedRecipe.getParts();
+
+        Pan originalPan = customizedRecipe.getPan();
+
+        if(originalPan == null || originalPan.getId().equals(0L)) {
+            originalPan = newPan;
+        }
+
+        BigDecimal ratio = newPan.getVolume()
+                .divide(originalPan.getVolume(), 2, RoundingMode.HALF_UP);
+
+        List<RecipePartDto> parts = new ArrayList<>();
+        for(RecipePart newRecipePart : partSet) {
+            RecipePart originalRecipePart = partMap.get(newRecipePart.getName());
+
+            List<RecipeIngredientDto> list = originalRecipePart.getIngredients().stream()
+                    .sorted(Comparator.comparingLong(RecipePartIngredient::getId)) // id 오름차순 정렬
+                    .map(recipePartIngredient -> new RecipeIngredientDto(
+                            recipePartIngredient.getIngredient().getName(),
+                            recipePartIngredient.getQuantity().multiply(ratio),
+                            recipePartIngredient.getIngredient().getUnit()
+                    ))
+                    .toList();
+
+            parts.add(new RecipePartDto(originalRecipePart.getName(), list));
+        }
+
+
+
+        return parts;
     }
 }
 

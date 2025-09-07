@@ -1,9 +1,6 @@
 package com.ll.Yuruppang.domain.plan.controller;
 
-import com.ll.Yuruppang.domain.plan.dto.PlanAddRecipeRequest;
-import com.ll.Yuruppang.domain.plan.dto.PlanCreateRequest;
-import com.ll.Yuruppang.domain.plan.dto.PlanIdResponse;
-import com.ll.Yuruppang.domain.plan.dto.PlanSimpleResponse;
+import com.ll.Yuruppang.domain.plan.dto.*;
 import com.ll.Yuruppang.domain.plan.dto.complete.PlanCompleteRequest;
 import com.ll.Yuruppang.domain.plan.dto.detailResponse.PlanDetailGetResponse;
 import com.ll.Yuruppang.domain.plan.dto.modifyPlan.PlanMemoModifyRequest;
@@ -94,6 +91,13 @@ public class PlanController {
     public RsData<PlanDetailGetResponse> updateRecipeReset(
             @PathVariable Long planId, @PathVariable Long recipeId) {
         return RsData.success(HttpStatus.OK, planService.resetRecipe(planId, recipeId));
+    }
+
+    @PatchMapping("/{planId}/recipes/{recipeId}/pan")
+    public RsData<PlanDetailGetResponse> updateRecipePan(
+            @PathVariable Long planId, @PathVariable Long recipeId,
+            @RequestBody @Valid PlanPanChangeRequest request) {
+        return RsData.success(HttpStatus.OK, planService.panChange(planId, recipeId, request.panId()));
     }
 
     @PatchMapping("/{planId}/recipes/{recipeId}/description")

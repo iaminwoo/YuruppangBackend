@@ -19,8 +19,13 @@ import java.util.Optional;
 public class PanService {
     private final PanRepository panRepository;
 
-    public Optional<Pan> findById(Long panId) {
+    public Optional<Pan> findByIdOptional(Long panId) {
         return panRepository.findById(panId);
+    }
+
+    public Pan findById(Long panId) {
+        return panRepository.findById(panId)
+                .orElseThrow(ErrorCode.PAN_NOT_FOUND::throwServiceException);
     }
 
     @Transactional
@@ -65,7 +70,7 @@ public class PanService {
 
     @Transactional
     public PanResponse getPanDetail(Long panId) {
-        Pan pan = findById(panId).orElseThrow(ErrorCode.PAN_NOT_FOUND::throwServiceException);
+        Pan pan = findByIdOptional(panId).orElseThrow(ErrorCode.PAN_NOT_FOUND::throwServiceException);
         return makePanResponse(pan);
     }
 

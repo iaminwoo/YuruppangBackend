@@ -61,7 +61,7 @@ public class RecipeService {
                 .build();
         categoryService.connectRecipe(recipe, categoryId);
 
-        Optional<Pan> panOptional = panService.findById(panId);
+        Optional<Pan> panOptional = panService.findByIdOptional(panId);
         panOptional.ifPresent(recipe::setPan);
 
         recipeRepository.save(recipe);
@@ -206,7 +206,7 @@ public class RecipeService {
         recipe.update(newName, newDescription, newOutputQuantity);
         categoryService.connectRecipe(recipe, newCategoryId);
 
-        Optional<Pan> panOptional = panService.findById(panId);
+        Optional<Pan> panOptional = panService.findByIdOptional(panId);
         panOptional.ifPresent(recipe::setPan);
 
         List<RecipePart> updatedParts = new ArrayList<>();

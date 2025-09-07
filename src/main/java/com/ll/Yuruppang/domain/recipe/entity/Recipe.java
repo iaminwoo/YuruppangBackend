@@ -76,6 +76,7 @@ public class Recipe {
                 .name(originalRecipe.getName() + "(수정중)" + UUID.randomUUID().toString().substring(0, 8))
                 .description(originalRecipe.getDescription())
                 .outputQuantity(originalRecipe.getOutputQuantity())
+                .pan(originalRecipe.getPan())
                 .category(originalRecipe.getCategory())
                 .recipeType(RecipeType.TEMP)
                 .build();

@@ -67,6 +67,7 @@ public class PlanTest {
                     "name": "테스트 초코머핀 레시피",
                     "description": "부드럽고 진한 초콜릿 머핀 레시피입니다.",
                     "outputQuantity": 15,
+                    "panId": 0,
                     "parts": [
                         {
                             "partName": "기본",

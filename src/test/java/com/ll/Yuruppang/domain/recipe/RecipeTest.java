@@ -73,6 +73,7 @@ public class RecipeTest {
                     "name": "초코머핀",
                     "description": "부드럽고 진한 초콜릿 머핀 레시피입니다.",
                     "outputQuantity": %d,
+                    "panId": 0,
                     "parts": [
                         {
                             "partName": "기본",
