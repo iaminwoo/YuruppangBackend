@@ -18,6 +18,9 @@ jwt:
 ai:
   apiKey: ${AI_APIKEY}
 
+youtube:
+  apiKey: ${YOUTUBE_APIKEY}
+
 cookie:
   secure: true
   sameSite: None
