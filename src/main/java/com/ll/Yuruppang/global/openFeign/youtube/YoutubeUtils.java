@@ -1,5 +1,6 @@
 package com.ll.Yuruppang.global.openFeign.youtube;
 
+import com.ll.Yuruppang.global.exceptions.ErrorCode;
 import com.ll.Yuruppang.global.openFeign.youtube.dto.VideoListResponse;
 import com.ll.Yuruppang.global.openFeign.youtube.dto.VideoSnippet;
 
@@ -35,7 +36,8 @@ public class YoutubeUtils {
                 return queryParams.getOrDefault("v", "");
             }
 
-        } catch (URISyntaxException _) {
+        } catch (URISyntaxException e) {
+            throw ErrorCode.VIDEO_ID_NOT_FOUND.throwServiceException();
         }
         return "";
     }
