@@ -22,18 +22,6 @@ services:
       - db
     ports:
       - "8080:8080"
-
-  fastapi:
-    image: inwooinwoo/fastapi-app:latest
-    container_name: fastapi-app
-    restart: always
-    env_file:
-      - .env
-    depends_on:
-      - db
-      - app
-    ports:
-      - "8000:8000"
-
+      
 volumes:
   postgres_data:
