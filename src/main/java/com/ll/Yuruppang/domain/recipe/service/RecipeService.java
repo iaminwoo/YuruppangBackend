@@ -74,6 +74,7 @@ public class RecipeService {
                 .build();
         categoryService.connectRecipe(recipe, categoryId);
 
+        if(panId == null) panId = 0L;
         Optional<Pan> panOptional = panService.findByIdOptional(panId);
         panOptional.ifPresent(recipe::setPan);
 
@@ -88,6 +89,8 @@ public class RecipeService {
                     .build();
             recipePartRepository.save(part);
 
+            int orderIndex = 1;
+
             for(RecipeIngredientDto ingredientDto : ingredients) {
                 Ingredient ingredient;
                 try {
@@ -101,6 +104,7 @@ public class RecipeService {
                         .recipePart(part)
                         .ingredient(ingredient)
                         .quantity(ingredientDto.quantity())
+                        .orderIndex(orderIndex++)
                         .build();
 
                 part.addIngredient(partIngredient);
@@ -128,7 +132,7 @@ public class RecipeService {
                 Ingredient ingredient = partIngredient.getIngredient();
                 ingredients.add(new RecipeIngredientGetDto(
                         ingredient.getId(), partIngredient.getId(), ingredient.getName(), partIngredient.getQuantity(),
-                        ingredient.getUnit(), ingredient.getTotalStock()
+                        partIngredient.getOrderIndex(), ingredient.getUnit(), ingredient.getTotalStock()
                 ));
 
                 // 원가 계산
@@ -138,8 +142,12 @@ public class RecipeService {
                 totalPrice = totalPrice.add(quantity.multiply(unitPrice.divide(density, 2, RoundingMode.HALF_UP)));
             }
 
-            // 재료 id 순 (등록된 순으로 정렬)
-            ingredients.sort(Comparator.comparing(RecipeIngredientGetDto::ingredientPartId));
+            // 재료 순서 정렬
+            try {
+                ingredients.sort(Comparator.comparing(RecipeIngredientGetDto::orderIndex));
+            } catch (Exception e) {
+                ingredients.sort(Comparator.comparing(RecipeIngredientGetDto::ingredientId));
+            }
 
             parts.add(new RecipePartGetDto(part.getId(), part.getName(), ingredients));
         }
@@ -219,6 +227,7 @@ public class RecipeService {
         recipe.update(newName, newDescription, newOutputQuantity);
         categoryService.connectRecipe(recipe, newCategoryId);
 
+        if(panId == null) panId = 0L;
         Optional<Pan> panOptional = panService.findByIdOptional(panId);
         panOptional.ifPresent(recipe::setPan);
 
@@ -238,6 +247,8 @@ public class RecipeService {
             // 기존 재료 모두 제거 (orphanRemoval 설정 필요)
             part.getIngredients().clear();
 
+            int orderIndex = 1;
+
             // DTO 순서대로 RecipePartIngredient 생성
             for (RecipeIngredientDto newIngredientDto : newPartDto.ingredients()) {
                 Ingredient ingredient = ingredientService.findOrCreate(
@@ -247,8 +258,9 @@ public class RecipeService {
 
                 RecipePartIngredient partIngredient = RecipePartIngredient.builder()
                         .recipePart(part)
-                        .ingredient(ingredient)  // 기존 Ingredient 재사용
+                        .ingredient(ingredient)
                         .quantity(newIngredientDto.quantity())
+                        .orderIndex(orderIndex++)
                         .build();
 
                 part.addIngredient(partIngredient);

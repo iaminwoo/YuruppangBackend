@@ -9,6 +9,7 @@ public record RecipeIngredientGetDto(
         Long ingredientPartId,
         String ingredientName,
         BigDecimal requiredQuantity,
+        Integer orderIndex,
         IngredientUnit unit,
         BigDecimal stockQuantity
 ) {

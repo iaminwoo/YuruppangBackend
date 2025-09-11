@@ -10,6 +10,7 @@ public record ComparedIngredientDto(
         String ingredientName,
         IngredientUnit unit,
         BigDecimal originalQuantity,
-        BigDecimal customizedQuantity
+        BigDecimal customizedQuantity,
+        int orderIndex
 ){
 }

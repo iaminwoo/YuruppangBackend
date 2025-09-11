@@ -27,6 +27,8 @@ public class RecipePartIngredient {
     @JoinColumn(name = "ingredient_id")
     private Ingredient ingredient;
 
+    private Integer orderIndex;
+
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal quantity;
 

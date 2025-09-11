@@ -164,23 +164,34 @@ public class PlanService {
                     RecipePartIngredient originalPi = null;
 
                     if (originalPart != null) {
-                        // 동일 ingredientId를 가진 원본 재료 목록
-                        List<RecipePartIngredient> originalPis = originalPart.getIngredients().stream()
-                                .filter(pi -> pi.getIngredient().getId().equals(ingredient.getId()))
-                                .toList();
+                        if (partIngredient.getOrderIndex() != null) {
+                            // 순서 기반 매칭
+                            originalPi = originalPart.getIngredients().stream()
+                                    .filter(pi -> pi.getOrderIndex() != null)
+                                    .filter(pi -> pi.getOrderIndex().equals(partIngredient.getOrderIndex()))
+                                    .findFirst()
+                                    .orElse(null);
+                        } else {
+                            // 순서 없는 경우 → 이름 기반 매칭 (중복 방지 포함)
+                            List<RecipePartIngredient> originalPis = originalPart.getIngredients().stream()
+                                    .filter(pi -> pi.getIngredient().getName().equals(partIngredient.getIngredient().getName()))
+                                    .toList();
 
-                        // 아직 사용되지 않은 첫 번째 원본 재료 선택
-                        originalPi = originalPis.stream()
-                                .filter(pi -> !usedOriginalPis.contains(pi))
-                                .findFirst()
-                                .orElse(null);
+                            originalPi = originalPis.stream()
+                                    .filter(pi -> !usedOriginalPis.contains(pi)) // 이미 매칭된 건 제외
+                                    .findFirst()
+                                    .orElse(null);
+                        }
 
                         if (originalPi != null) {
                             usedOriginalPis.add(originalPi); // 사용 표시
                         }
                     }
 
+
                     BigDecimal originalQuantity = originalPi != null ? originalPi.getQuantity() : BigDecimal.ZERO;
+
+                    int orderIndex = partIngredient.getOrderIndex() == null ? 0 : partIngredient.getOrderIndex();
 
                     comparedIngredients.add(new ComparedIngredientDto(
                             ingredient.getId(),
@@ -188,7 +199,8 @@ public class PlanService {
                             ingredient.getName(),
                             ingredient.getUnit(),
                             originalQuantity,
-                            customizedQuantity
+                            customizedQuantity,
+                            orderIndex
                     ));
 
                     // 원가 계산
@@ -198,8 +210,12 @@ public class PlanService {
                     totalPrice = totalPrice.add(unitPrice.multiply(quantity.divide(density, 2, RoundingMode.HALF_UP)));
                 }
 
-                // 재료 id 순 (등록된 순으로 정렬)
-                comparedIngredients.sort(Comparator.comparing(ComparedIngredientDto::ingredientPartId));
+                // 재료 순서에 맞게
+                try {
+                    comparedIngredients.sort(Comparator.comparing(ComparedIngredientDto::orderIndex));
+                } catch (Exception e) {
+                    comparedIngredients.sort(Comparator.comparing(ComparedIngredientDto::ingredientId));
+                }
 
                 comparedParts.add(new ComparedPartDto(
                         tempPart.getId(), tempPart.getName(), tempPart.getPercent(), comparedIngredients
