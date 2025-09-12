@@ -11,11 +11,23 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
 public class ParseAiJson {
     private final IngredientService ingredientService;
+
+    private static final Map<String, IngredientUnit> UNIT_MAP = Map.of(
+            "g", IngredientUnit.G,
+            "ml", IngredientUnit.ML,
+            "개", IngredientUnit.EA
+    );
+
+    private IngredientUnit safeUnitConvert(String unitStr) {
+        if (unitStr == null) return IngredientUnit.G;
+        return UNIT_MAP.getOrDefault(unitStr.trim().toUpperCase(), IngredientUnit.G);
+    }
 
     public RecipeAutoRegisterResponse parse(String jsonString) {
         try {
@@ -38,7 +50,7 @@ public class ParseAiJson {
                                 return new RecipeIngredientResponse(
                                         i.ingredientName(),
                                         BigDecimal.valueOf(i.quantity()),
-                                        IngredientUnit.valueOf(i.unit().toUpperCase()),
+                                        safeUnitConvert(i.unit),
                                         stock
                                 );
                             }).toList()
