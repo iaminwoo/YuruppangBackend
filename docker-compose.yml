@@ -27,6 +27,8 @@ services:
     image: inwooinwoo/commute-mate:latest
     container_name: fastapi-app
     restart: always
+    env_file:
+      - .env
     ports:
       - "127.0.0.1:8001:8000"  # Nginx proxy용
       
