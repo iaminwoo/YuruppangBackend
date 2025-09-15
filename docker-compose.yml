@@ -30,7 +30,9 @@ services:
     env_file:
       - .env
     ports:
-      - "127.0.0.1:8001:8000"  # Nginx proxy용
+      - "127.0.0.1:8001:8000"
+    volumes:
+      - ./bus_data:/app/data
       
 volumes:
   postgres_data:
