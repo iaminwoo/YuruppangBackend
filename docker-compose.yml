@@ -33,7 +33,6 @@ services:
       - "127.0.0.1:8001:8000"
     volumes:
       - ./bus_data:/app/data
-      - ./schedule.db:/app/schedule.db
       
 volumes:
   postgres_data:
