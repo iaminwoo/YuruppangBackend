@@ -631,7 +631,7 @@ public class PlanService {
             RecipePart originalRecipePart = partMap.get(newRecipePart.getName());
 
             List<RecipeIngredientDto> list = originalRecipePart.getIngredients().stream()
-                    .sorted(Comparator.comparingLong(RecipePartIngredient::getId)) // id 오름차순 정렬
+                    .sorted(Comparator.comparingLong(RecipePartIngredient::getOrderIndex)) // orderIndex 오름차순 정렬
                     .map(recipePartIngredient -> new RecipeIngredientDto(
                             recipePartIngredient.getIngredient().getName(),
                             recipePartIngredient.getQuantity().multiply(ratio),
@@ -641,9 +641,6 @@ public class PlanService {
 
             parts.add(new RecipePartDto(originalRecipePart.getName(), list));
         }
-
-
-
         return parts;
     }
 }

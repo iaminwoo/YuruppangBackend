@@ -96,6 +96,7 @@ public class Recipe {
                         .ingredient(recipeIngredient.getIngredient())
                         .quantity(recipeIngredient.getQuantity())
                         .recipePart(copiedPart)
+                        .orderIndex(recipeIngredient.getOrderIndex())
                         .build();
                 copiedPart.addIngredient(copiedRecipeIngredient);
             }
