@@ -3,16 +3,26 @@ spring:
     activate:
       on-profile: dev
 
-  datasource:
-    url: jdbc:h2:file:./data/yuruppang-dev-db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+#  h2 데이터베이스
+#  datasource:
+#    url: jdbc:h2:file:./data/yuruppang-dev-db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+#    driver-class-name: org.h2.Driver
+#    username: sa
+#    password:
 
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+#  docker postgreSQL 데이터베이스
+  datasource:
+    url: jdbc:postgresql://localhost:5433/baking_local
+    username: dev_user
+    password: dev_password
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    show-sql: true
+
+#  h2:
+#    console:
+#      enabled: true
+#      path: /h2-console
 
 cookie:
   secure: false

@@ -8,6 +8,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 @Entity
+@Table(name = "recipe_part_ingredient", indexes = {
+        @Index(name = "idx_rpi_recipe_part_id", columnList = "recipe_part_id")
+})
 @Getter
 @Setter
 @NoArgsConstructor
