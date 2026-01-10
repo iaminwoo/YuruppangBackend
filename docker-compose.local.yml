@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:17
+    container_name: yuruppang-local-db
+    restart: always
+    environment:
+      POSTGRES_USER: dev_user
+      POSTGRES_PASSWORD: dev_password
+      POSTGRES_DB: baking_local
+    ports:
+      - "5433:5432"
+    volumes:
+      - local_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  local_postgres_data:

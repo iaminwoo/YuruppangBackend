@@ -7,6 +7,9 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Entity
+@Table(name = "recipe_part", indexes = {
+        @Index(name = "idx_recipe_part_recipe_id", columnList = "recipe_id")
+})
 @Getter
 @Setter
 @NoArgsConstructor
