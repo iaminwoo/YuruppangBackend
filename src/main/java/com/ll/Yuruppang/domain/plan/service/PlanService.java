@@ -1,6 +1,5 @@
 package com.ll.Yuruppang.domain.plan.service;
 
-import com.ll.Yuruppang.domain.inventory.entity.Ingredient;
 import com.ll.Yuruppang.domain.inventory.entity.dto.request.IngredientUseRequest;
 import com.ll.Yuruppang.domain.inventory.service.IngredientService;
 import com.ll.Yuruppang.domain.plan.dto.PlanIdResponse;
@@ -120,133 +119,27 @@ public class PlanService {
                 });
     }
 
+    // TODO : 리펙토링 대상
     @Transactional(readOnly = true)
     public PlanDetailGetResponse getPlanDetail(Long planId) {
         BakingPlan plan = findById(planId);
 
-        List<ComparedPlanRecipeDetailDto> recipeDetails = new ArrayList<>();
-        List<IngredientLackDto> lackIngredients = new ArrayList<>();
+        // note : 레시피 조회
+        List<ComparedPlanRecipeDetailDto> recipeDetails = recipeService.getComparedRecipeDetails(plan.getRecipes());
 
-        // 레시피 별
-        for(BakingPlanRecipe planRecipe : plan.getRecipes()) {
-            Recipe originalRecipe = planRecipe.getOriginalRecipe();
+        // note : 전체 재료 수합
+        Map<Long, BigDecimal> totalIngredient = aggregateRequiredIngredients(recipeDetails);
 
-            Recipe tempRecipe;
-            boolean isTemp = false;
-            if(planRecipe.getCustomizedRecipe().getRecipeType().equals(RecipeType.PLACEHOLDER)) {
-                tempRecipe = planRecipe.getOriginalRecipe();
-            } else {
-                tempRecipe = planRecipe.getCustomizedRecipe();
-                isTemp = true;
-            }
+        // note : 부족 재료 관리
+        List<IngredientLackDto> lackIngredients = ingredientService.calculateLackIngredients(totalIngredient);
 
-            Map<String, RecipePart> originalPartMap = originalRecipe.getParts().stream()
-                    .collect(Collectors.toMap(RecipePart::getName, Function.identity()));
+        return new PlanDetailGetResponse(
+                plan.getName(), plan.getMemo(), plan.isComplete(), recipeDetails, lackIngredients
+        );
+    }
 
-            BigDecimal totalPrice = BigDecimal.ZERO;
-
-            List<ComparedPartDto> comparedParts = new ArrayList<>();
-            // 파트 별
-            List<RecipePart> sortedParts = new ArrayList<>(tempRecipe.getParts());
-            sortedParts.sort(Comparator.comparing(RecipePart::getName));
-
-            for (RecipePart tempPart : sortedParts) {
-
-                RecipePart originalPart = originalPartMap.get(tempPart.getName());
-                List<ComparedIngredientDto> comparedIngredients = new ArrayList<>();
-                List<RecipePartIngredient> tempIngredients = new ArrayList<>(tempPart.getIngredients());
-                Set<RecipePartIngredient> usedOriginalPis = new HashSet<>();
-
-                for (RecipePartIngredient partIngredient : tempIngredients) {
-                    Ingredient ingredient = partIngredient.getIngredient();
-                    BigDecimal customizedQuantity = partIngredient.getQuantity();
-
-                    RecipePartIngredient originalPi = null;
-
-                    if (originalPart != null) {
-                        if (partIngredient.getOrderIndex() != null) {
-                            // 순서 기반 매칭
-                            originalPi = originalPart.getIngredients().stream()
-                                    .filter(pi -> pi.getOrderIndex() != null)
-                                    .filter(pi -> pi.getOrderIndex().equals(partIngredient.getOrderIndex()))
-                                    .findFirst()
-                                    .orElse(null);
-                        } else {
-                            // 순서 없는 경우 → 이름 기반 매칭 (중복 방지 포함)
-                            List<RecipePartIngredient> originalPis = originalPart.getIngredients().stream()
-                                    .filter(pi -> pi.getIngredient().getName().equals(partIngredient.getIngredient().getName()))
-                                    .toList();
-
-                            originalPi = originalPis.stream()
-                                    .filter(pi -> !usedOriginalPis.contains(pi)) // 이미 매칭된 건 제외
-                                    .findFirst()
-                                    .orElse(null);
-                        }
-
-                        if (originalPi != null) {
-                            usedOriginalPis.add(originalPi); // 사용 표시
-                        }
-                    }
-
-
-                    BigDecimal originalQuantity = originalPi != null ? originalPi.getQuantity() : BigDecimal.ZERO;
-
-                    int orderIndex = partIngredient.getOrderIndex() == null ? 0 : partIngredient.getOrderIndex();
-
-                    comparedIngredients.add(new ComparedIngredientDto(
-                            ingredient.getId(),
-                            partIngredient.getId(),
-                            ingredient.getName(),
-                            ingredient.getUnit(),
-                            originalQuantity,
-                            customizedQuantity,
-                            orderIndex
-                    ));
-
-                    // 원가 계산
-                    BigDecimal unitPrice = partIngredient.getIngredient().getUnitPrice();
-                    BigDecimal quantity = partIngredient.getQuantity();
-                    BigDecimal density = partIngredient.getIngredient().getDensity();
-                    totalPrice = totalPrice.add(unitPrice.multiply(quantity.divide(density, 2, RoundingMode.HALF_UP)));
-                }
-
-                // 재료 순서에 맞게
-                try {
-                    comparedIngredients.sort(Comparator.comparing(ComparedIngredientDto::orderIndex));
-                } catch (Exception e) {
-                    comparedIngredients.sort(Comparator.comparing(ComparedIngredientDto::ingredientId));
-                }
-
-                comparedParts.add(new ComparedPartDto(
-                        tempPart.getId(), tempPart.getName(), tempPart.getPercent(), comparedIngredients
-                ));
-            }
-
-            // 파트 번호순 (등록된 순으로 정렬)
-            comparedParts.sort(Comparator.comparing(ComparedPartDto::partId));
-
-            recipeDetails.add(new ComparedPlanRecipeDetailDto(
-                    originalRecipe.getId(),
-                    originalRecipe.getName(),
-                    originalRecipe.getDescription(),
-                    totalPrice,
-                    tempRecipe.getName(),
-                    tempRecipe.getDescription(),
-                    panService.makePanResponse(tempRecipe.getPan()),
-                    isTemp,
-                    originalRecipe.getOutputQuantity(),
-                    tempRecipe.getOutputQuantity(),
-                    new BigDecimal(tempRecipe.getOutputQuantity())
-                            .multiply(new BigDecimal(100))
-                            .divide(new BigDecimal(originalRecipe.getOutputQuantity()), 0, RoundingMode.HALF_UP)
-                            .intValue(),
-                    comparedParts
-            ));
-        }
-
-        // 레시피 이름 순으로 정렬
-        recipeDetails.sort(Comparator.comparing(ComparedPlanRecipeDetailDto::recipeName));
-
+    // TODO : 메서드 리펙토링 중
+    private Map<Long, BigDecimal> aggregateRequiredIngredients(List<ComparedPlanRecipeDetailDto> recipeDetails) {
         Map<Long, BigDecimal> totalIngredient = new HashMap<>();
         for(ComparedPlanRecipeDetailDto recipeDetailDto : recipeDetails) {
             for(ComparedPartDto comparedPartDto : recipeDetailDto.comparedParts()) {
@@ -257,30 +150,7 @@ public class PlanService {
                 }
             }
         }
-
-        for(Long ingredientId : totalIngredient.keySet()) {
-            Ingredient ingredient = ingredientService.findById(ingredientId);
-            BigDecimal customizedQuantity = totalIngredient.get(ingredientId);
-
-            // 부족 재료 추가
-            if(ingredient.getTotalStock().compareTo(customizedQuantity) < 0) {
-                lackIngredients.add(new IngredientLackDto(
-                        ingredientId, ingredient.getName(),
-                        customizedQuantity, ingredient.getTotalStock(),
-                        customizedQuantity.subtract(ingredient.getTotalStock())
-                ));
-            }
-        }
-
-        lackIngredients.sort(Comparator.comparing(IngredientLackDto::name));
-
-        return new PlanDetailGetResponse(
-                plan.getName(),
-                plan.getMemo(),
-                plan.isComplete(),
-                recipeDetails,
-                lackIngredients
-        );
+        return totalIngredient;
     }
 
     @Transactional

@@ -12,6 +12,7 @@ import com.ll.Yuruppang.domain.inventory.entity.dto.response.IngredientResponse;
 import com.ll.Yuruppang.domain.inventory.entity.dto.response.StockResponse;
 import com.ll.Yuruppang.domain.inventory.repository.IngredientRepository;
 import com.ll.Yuruppang.domain.inventory.repository.LogRepository;
+import com.ll.Yuruppang.domain.plan.dto.detailResponse.IngredientLackDto;
 import com.ll.Yuruppang.domain.recipe.repository.PartIngredientRepository;
 import com.ll.Yuruppang.global.exceptions.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -259,5 +260,28 @@ public class IngredientService {
         Ingredient yolks = findIngredientByName("노른자");
 
         return new EggResponse(eggCount, whites.getTotalStock(), yolks.getTotalStock());
+    }
+
+    // TODO : 메서드 리펙토링 중
+    public List<IngredientLackDto> calculateLackIngredients(Map<Long, BigDecimal> totalIngredient) {
+        List<IngredientLackDto> lackIngredients = new ArrayList<>();
+
+        for(Long ingredientId : totalIngredient.keySet()) {
+            Ingredient ingredient = findById(ingredientId);
+            BigDecimal customizedQuantity = totalIngredient.get(ingredientId);
+
+            // 부족 재료 추가
+            if(ingredient.getTotalStock().compareTo(customizedQuantity) < 0) {
+                lackIngredients.add(new IngredientLackDto(
+                        ingredientId, ingredient.getName(),
+                        customizedQuantity, ingredient.getTotalStock(),
+                        customizedQuantity.subtract(ingredient.getTotalStock())
+                ));
+            }
+        }
+
+        lackIngredients.sort(Comparator.comparing(IngredientLackDto::name));
+
+        return lackIngredients;
     }
 }
