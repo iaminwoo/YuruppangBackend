@@ -18,6 +18,8 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     show-sql: true
+    properties:
+      hibernate.generate_statistics: true
 
 #  h2:
 #    console:

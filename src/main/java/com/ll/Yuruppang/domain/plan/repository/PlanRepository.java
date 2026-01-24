@@ -17,6 +17,7 @@ public interface PlanRepository extends JpaRepository<BakingPlan, Long> {
     @EntityGraph(attributePaths = {"recipes", "recipes.originalRecipe",})
     Page<BakingPlan> findAll(@NonNull Pageable pageable);
 
+    // note 개선된 버전
     @Query("""
         SELECT DISTINCT p
         FROM BakingPlan p
@@ -24,13 +25,9 @@ public interface PlanRepository extends JpaRepository<BakingPlan, Long> {
         LEFT JOIN FETCH pr.originalRecipe orr
         LEFT JOIN FETCH pr.customizedRecipe cur
         LEFT JOIN FETCH orr.parts orp
-        LEFT JOIN FETCH orp.ingredients oriIng
-        LEFT JOIN FETCH oriIng.ingredient oriIngI
         LEFT JOIN FETCH cur.parts curp
-        LEFT JOIN FETCH curp.ingredients curIng
-        LEFT JOIN FETCH curIng.ingredient curIngI
         WHERE p.id = :id
     """)
-    Optional<BakingPlan> findWithAllById(@Param("id") Long id);
+    Optional<BakingPlan> findWithPartsById(@Param("id") Long id);
 }
 

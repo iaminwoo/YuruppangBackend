@@ -2,6 +2,7 @@ package com.ll.Yuruppang.domain.recipe.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -33,6 +34,7 @@ public class RecipePart {
 
     @OneToMany(mappedBy = "recipePart", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @BatchSize(size = 100)
     private Set<RecipePartIngredient> ingredients = new LinkedHashSet<>();
 
     public void addIngredient(RecipePartIngredient ingredient) {

@@ -53,7 +53,7 @@ public class PlanService {
     private EntityManager em;
 
     private BakingPlan findById(Long planId) {
-        return planRepository.findWithAllById(planId)
+        return planRepository.findWithPartsById(planId)
                 .orElseThrow(ErrorCode.PLAN_NOT_FOUND::throwServiceException);
     }
 
@@ -138,7 +138,6 @@ public class PlanService {
         );
     }
 
-    // TODO : 메서드 리펙토링 중
     private Map<Long, BigDecimal> aggregateRequiredIngredients(List<ComparedPlanRecipeDetailDto> recipeDetails) {
         Map<Long, BigDecimal> totalIngredient = new HashMap<>();
         for(ComparedPlanRecipeDetailDto recipeDetailDto : recipeDetails) {
