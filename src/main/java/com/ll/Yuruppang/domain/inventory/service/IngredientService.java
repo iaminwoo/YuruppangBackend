@@ -204,8 +204,8 @@ public class IngredientService {
             BigDecimal newDensity = unitWeight.divide(unitVolume, 4, RoundingMode.HALF_UP);
 
             BigDecimal volume = ingredient.getTotalStock().divide(ingredient.getDensity(), 4, RoundingMode.HALF_UP);
-            ingredient.setTotalStock(volume.multiply(newDensity));
-            ingredient.setDensity(newDensity);
+            ingredient.updateTotalStock(volume.multiply(newDensity));
+            ingredient.updateDensity(newDensity);
         }
         return makeResponseDto(ingredient);
     }
@@ -219,7 +219,7 @@ public class IngredientService {
     @Transactional
     public IngredientResponse changeIngredientUnit(Long ingredientId, IngredientUnit newUnit) {
         Ingredient ingredient = findById(ingredientId);
-        ingredient.setUnit(newUnit);
+        ingredient.updateUnit(newUnit);
         return makeResponseDto(ingredient);
     }
 
@@ -243,12 +243,12 @@ public class IngredientService {
         Ingredient whites = findIngredientByName("흰자");
         BigDecimal whitesWeight = BigDecimal.valueOf(36);
         whites.addTotalQuantity(quantity.multiply(whitesWeight));
-        whites.setUnitPrice(eggUnitPricePerG);
+        whites.updateUnitPrice(eggUnitPricePerG);
 
         Ingredient yolks = findIngredientByName("노른자");
         BigDecimal yolksWeight = BigDecimal.valueOf(18);
         yolks.addTotalQuantity(quantity.multiply(yolksWeight));
-        yolks.setUnitPrice(eggUnitPricePerG);
+        yolks.updateUnitPrice(eggUnitPricePerG);
     }
 
     @Transactional(readOnly = true)
