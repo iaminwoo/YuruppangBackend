@@ -284,4 +284,22 @@ public class IngredientService {
 
         return lackIngredients;
     }
+
+    @Transactional
+    public void applyLogEffect(Ingredient ingredient, LogType type, BigDecimal quantity, BigDecimal price, boolean isRollback) {
+        BigDecimal effectiveQuantity = quantity;
+
+        if (type == LogType.PURCHASE) {
+            if (isRollback) {
+                ingredient.subtractUnitPrice(price, quantity);
+                effectiveQuantity = quantity.negate();
+            } else {
+                ingredient.changeUnitPrice(price, quantity);
+            }
+        } else {
+            if (!isRollback) effectiveQuantity = quantity.negate();
+        }
+
+        ingredient.addTotalQuantity(effectiveQuantity);
+    }
 }
