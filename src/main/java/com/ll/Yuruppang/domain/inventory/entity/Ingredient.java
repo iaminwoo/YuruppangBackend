@@ -29,18 +29,14 @@ public class Ingredient {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    @Setter
     private IngredientUnit unit;
 
     @Column(nullable = false)
-    @Setter
     private BigDecimal unitPrice; // 단위당 가격
 
-    @Setter
     @Column(nullable = false)
     private BigDecimal totalStock; // 현재 남은 수량, g 으로 저장됨
 
-    @Setter
     @Builder.Default
     private BigDecimal density = BigDecimal.ONE;
 
@@ -53,6 +49,22 @@ public class Ingredient {
     @Builder.Default
     @OneToMany(mappedBy = "ingredient", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<RecipePartIngredient> partIngredients = new LinkedHashSet<>();
+
+    public void updateUnit(IngredientUnit newUnit) {
+        unit = newUnit;
+    }
+
+    public void updateUnitPrice(BigDecimal newUnitPrice) {
+        unitPrice = newUnitPrice;
+    }
+
+    public void updateTotalStock(BigDecimal newTotalStock) {
+        totalStock = newTotalStock;
+    }
+
+    public void updateDensity(BigDecimal newDensity) {
+        density = newDensity;
+    }
 
     public void addTotalQuantity(BigDecimal quantity) {
         if (quantity == null) throw ErrorCode.ILLEGAL_INGREDIENT_QUANTITY.throwServiceException();

@@ -12,6 +12,7 @@ import com.ll.Yuruppang.domain.inventory.entity.dto.response.IngredientResponse;
 import com.ll.Yuruppang.domain.inventory.entity.dto.response.StockResponse;
 import com.ll.Yuruppang.domain.inventory.repository.IngredientRepository;
 import com.ll.Yuruppang.domain.inventory.repository.LogRepository;
+import com.ll.Yuruppang.domain.plan.dto.detailResponse.IngredientLackDto;
 import com.ll.Yuruppang.domain.recipe.repository.PartIngredientRepository;
 import com.ll.Yuruppang.global.exceptions.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -203,8 +204,8 @@ public class IngredientService {
             BigDecimal newDensity = unitWeight.divide(unitVolume, 4, RoundingMode.HALF_UP);
 
             BigDecimal volume = ingredient.getTotalStock().divide(ingredient.getDensity(), 4, RoundingMode.HALF_UP);
-            ingredient.setTotalStock(volume.multiply(newDensity));
-            ingredient.setDensity(newDensity);
+            ingredient.updateTotalStock(volume.multiply(newDensity));
+            ingredient.updateDensity(newDensity);
         }
         return makeResponseDto(ingredient);
     }
@@ -218,7 +219,7 @@ public class IngredientService {
     @Transactional
     public IngredientResponse changeIngredientUnit(Long ingredientId, IngredientUnit newUnit) {
         Ingredient ingredient = findById(ingredientId);
-        ingredient.setUnit(newUnit);
+        ingredient.updateUnit(newUnit);
         return makeResponseDto(ingredient);
     }
 
@@ -242,12 +243,12 @@ public class IngredientService {
         Ingredient whites = findIngredientByName("흰자");
         BigDecimal whitesWeight = BigDecimal.valueOf(36);
         whites.addTotalQuantity(quantity.multiply(whitesWeight));
-        whites.setUnitPrice(eggUnitPricePerG);
+        whites.updateUnitPrice(eggUnitPricePerG);
 
         Ingredient yolks = findIngredientByName("노른자");
         BigDecimal yolksWeight = BigDecimal.valueOf(18);
         yolks.addTotalQuantity(quantity.multiply(yolksWeight));
-        yolks.setUnitPrice(eggUnitPricePerG);
+        yolks.updateUnitPrice(eggUnitPricePerG);
     }
 
     @Transactional(readOnly = true)
@@ -259,5 +260,46 @@ public class IngredientService {
         Ingredient yolks = findIngredientByName("노른자");
 
         return new EggResponse(eggCount, whites.getTotalStock(), yolks.getTotalStock());
+    }
+
+    // TODO : 메서드 리펙토링 중
+    public List<IngredientLackDto> calculateLackIngredients(Map<Long, BigDecimal> totalIngredient) {
+        List<IngredientLackDto> lackIngredients = new ArrayList<>();
+
+        for(Long ingredientId : totalIngredient.keySet()) {
+            Ingredient ingredient = findById(ingredientId);
+            BigDecimal customizedQuantity = totalIngredient.get(ingredientId);
+
+            // 부족 재료 추가
+            if(ingredient.getTotalStock().compareTo(customizedQuantity) < 0) {
+                lackIngredients.add(new IngredientLackDto(
+                        ingredientId, ingredient.getName(),
+                        customizedQuantity, ingredient.getTotalStock(),
+                        customizedQuantity.subtract(ingredient.getTotalStock())
+                ));
+            }
+        }
+
+        lackIngredients.sort(Comparator.comparing(IngredientLackDto::name));
+
+        return lackIngredients;
+    }
+
+    @Transactional
+    public void applyLogEffect(Ingredient ingredient, LogType type, BigDecimal quantity, BigDecimal price, boolean isRollback) {
+        BigDecimal effectiveQuantity = quantity;
+
+        if (type == LogType.PURCHASE) {
+            if (isRollback) {
+                ingredient.subtractUnitPrice(price, quantity);
+                effectiveQuantity = quantity.negate();
+            } else {
+                ingredient.changeUnitPrice(price, quantity);
+            }
+        } else {
+            if (!isRollback) effectiveQuantity = quantity.negate();
+        }
+
+        ingredient.addTotalQuantity(effectiveQuantity);
     }
 }

@@ -4,7 +4,6 @@ import com.ll.Yuruppang.domain.inventory.entity.Ingredient;
 import com.ll.Yuruppang.domain.inventory.entity.IngredientLog;
 import com.ll.Yuruppang.domain.inventory.entity.LogType;
 import com.ll.Yuruppang.domain.inventory.entity.dto.response.LogGetResponse;
-import com.ll.Yuruppang.domain.inventory.repository.IngredientRepository;
 import com.ll.Yuruppang.domain.inventory.repository.LogRepository;
 import com.ll.Yuruppang.global.exceptions.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -19,8 +18,8 @@ import java.time.LocalDate;
 @Service
 @RequiredArgsConstructor
 public class LogService {
+    private final IngredientService ingredientService;
     private final LogRepository logRepository;
-    private final IngredientRepository ingredientRepository;
 
     @Transactional(readOnly = true)
     public LogGetResponse getLogDetail(Long logId) {
@@ -48,43 +47,24 @@ public class LogService {
     public LogGetResponse modifyLog(Long logId, LogType newType, String description,
                                     String ingredientName, BigDecimal newQuantity,
                                     BigDecimal newPrice, LocalDate actualAt) {
-        Ingredient newIngredient = ingredientRepository.findByName(ingredientName)
-                .orElseThrow(ErrorCode.INGREDIENT_NOT_FOUND::throwServiceException);
+        Ingredient newIngredient = ingredientService.findIngredientByName(ingredientName);
 
-        IngredientLog log = rollbackLog(logId);
+        IngredientLog log = logRepository.findById(logId)
+                .orElseThrow(ErrorCode.INGREDIENT_LOG_NOT_FOUND::throwServiceException);
+        ingredientService.applyLogEffect(log.getIngredient(), log.getType(), log.getQuantity(), log.getTotalPrice(), true);
 
-        if (newType == LogType.PURCHASE) {
-            newIngredient.changeUnitPrice(newPrice, newQuantity);
-            newIngredient.addTotalQuantity(newQuantity);
-        } else {
-            newIngredient.addTotalQuantity(newQuantity.negate());
-        }
+        ingredientService.applyLogEffect(newIngredient, newType, newQuantity, newPrice, false);
 
         log.update(newType, description, newIngredient, newQuantity, newPrice, actualAt);
         return makeGetResponse(log);
     }
 
-    private IngredientLog rollbackLog(long logId) {
-        IngredientLog log = logRepository.findById(logId)
-                .orElseThrow(ErrorCode.INGREDIENT_LOG_NOT_FOUND::throwServiceException);
-        Ingredient oldIngredient = log.getIngredient();
-        LogType oldType = log.getType();
-        BigDecimal oldQuantity = log.getQuantity();
-        BigDecimal oldPrice = log.getTotalPrice();
-
-        if (oldType == LogType.PURCHASE) {
-            oldIngredient.subtractUnitPrice(oldPrice, oldQuantity);
-            oldIngredient.addTotalQuantity(oldQuantity.negate());
-        } else {
-            oldIngredient.addTotalQuantity(oldQuantity);
-        }
-
-        return log;
-    }
-
     @Transactional
     public void deleteLog(Long logId) {
-        IngredientLog log = rollbackLog(logId);
+        IngredientLog log = logRepository.findById(logId)
+                .orElseThrow(ErrorCode.INGREDIENT_LOG_NOT_FOUND::throwServiceException);
+        ingredientService.applyLogEffect(log.getIngredient(), log.getType(), log.getQuantity(), log.getTotalPrice(), true);
+
         logRepository.delete(log);
     }
 }
