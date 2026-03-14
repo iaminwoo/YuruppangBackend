@@ -21,11 +21,9 @@ API 설계: RESTful API
 빌드 도구: Gradle
 
 ### 2. 배포 및 인프라
-서버 배포: Render
+서버 배포: AWS Lightsail, Docker
 
-데이터베이스: Neon
-
-도메인: yuruppang.store (구매 및 연결 완료)
+도메인: yuruppang.store
 
 ## 🧩 주요 기능 요약
 
