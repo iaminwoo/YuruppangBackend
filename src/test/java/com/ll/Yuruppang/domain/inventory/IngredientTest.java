@@ -1,7 +1,7 @@
 package com.ll.Yuruppang.domain.inventory;
 
 import com.ll.Yuruppang.domain.inventory.entity.Ingredient;
-import com.ll.Yuruppang.domain.inventory.service.IngredientService;
+import com.ll.Yuruppang.domain.inventory.service.IngredientQueryService;
 import com.ll.Yuruppang.global.TestAuthHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -28,7 +28,7 @@ public class IngredientTest {
     private TestAuthHelper testAuthHelper;
 
     @Autowired
-    private IngredientService ingredientService;
+    private IngredientQueryService ingredientQueryService;
 
     @BeforeEach
     public void createTestUser() throws Exception {
@@ -64,7 +64,7 @@ public class IngredientTest {
     public void recalculateQuantity() throws Exception {
         addIngredient();
 
-        Ingredient ingredient = ingredientService.findIngredientByName("우유");
+        Ingredient ingredient = ingredientQueryService.findByName("우유");
 
         String body = """
                 {

@@ -58,14 +58,6 @@ public class Ingredient {
         unitPrice = newUnitPrice;
     }
 
-    public void updateTotalStock(BigDecimal newTotalStock) {
-        totalStock = newTotalStock;
-    }
-
-    public void updateDensity(BigDecimal newDensity) {
-        density = newDensity;
-    }
-
     public void addTotalQuantity(BigDecimal quantity) {
         if (quantity == null) throw ErrorCode.ILLEGAL_INGREDIENT_QUANTITY.throwServiceException();
 
@@ -116,5 +108,21 @@ public class Ingredient {
     public void addPartIngredient(RecipePartIngredient partIngredient) {
         this.getPartIngredients().add(partIngredient);
         partIngredient.setIngredient(this);
+    }
+
+    public void updateQuantityAndPrice(BigDecimal price, BigDecimal quantity) {
+        this.changeUnitPrice(price, quantity);
+        this.addTotalQuantity(quantity);
+    }
+
+    public void recalculateQuantityByDensity(BigDecimal unitVolume, BigDecimal unitWeight) {
+        // 단위가 g 이 아닌 경우만 밀도 변경 가능하도록
+        if (this.unit.equals(IngredientUnit.G)) return;
+
+        BigDecimal newDensity = unitWeight.divide(unitVolume, 4, RoundingMode.HALF_UP);
+
+        BigDecimal curVolume = getTotalStock().divide(this.density, 4, RoundingMode.HALF_UP);
+        totalStock = curVolume.multiply(newDensity);
+        density = newDensity;
     }
 }

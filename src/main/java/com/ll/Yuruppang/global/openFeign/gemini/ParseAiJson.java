@@ -2,7 +2,7 @@ package com.ll.Yuruppang.global.openFeign.gemini;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ll.Yuruppang.domain.inventory.entity.IngredientUnit;
-import com.ll.Yuruppang.domain.inventory.service.IngredientService;
+import com.ll.Yuruppang.domain.inventory.service.IngredientQueryService;
 import com.ll.Yuruppang.domain.recipe.dto.autoRegister.RecipeAutoRegisterResponse;
 import com.ll.Yuruppang.domain.recipe.dto.autoRegister.RecipeIngredientResponse;
 import com.ll.Yuruppang.domain.recipe.dto.autoRegister.RecipePartResponse;
@@ -16,7 +16,7 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 public class ParseAiJson {
-    private final IngredientService ingredientService;
+    private final IngredientQueryService ingredientQueryService;
 
     private static final Map<String, IngredientUnit> UNIT_MAP = Map.of(
             "g", IngredientUnit.G,
@@ -43,7 +43,7 @@ public class ParseAiJson {
                             p.ingredients().stream().map(i -> {
                                 BigDecimal stock;
                                 try {
-                                    stock = ingredientService.findIngredientByName(i.ingredientName()).getTotalStock();
+                                    stock = ingredientQueryService.findByName(i.ingredientName()).getTotalStock();
                                 } catch (Exception e) {
                                     stock = BigDecimal.ZERO;
                                 }
