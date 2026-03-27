@@ -32,13 +32,9 @@ public class IngredientService {
     private final LogRepository logRepository;
     private final PartIngredientRepository partIngredientRepository;
 
+    // TODO 이 부분 캐시 적용할 수 있도록 findBy 들 다른 서비스나 컴포넌트로 옮기기
     public Ingredient findIngredientByName(String name) {
         return ingredientRepository.findByName(name)
-                .orElseThrow(ErrorCode.INGREDIENT_NOT_FOUND::throwServiceException);
-    }
-
-    public Ingredient findById(Long ingredientId) {
-        return ingredientRepository.findById(ingredientId)
                 .orElseThrow(ErrorCode.INGREDIENT_NOT_FOUND::throwServiceException);
     }
 
@@ -47,8 +43,12 @@ public class IngredientService {
         return found.orElseGet(() -> createIngredient(name, unit, BigDecimal.ZERO, BigDecimal.ZERO));
     }
 
-    @Transactional
-    public Ingredient addIngredient(String name, IngredientUnit unit, BigDecimal totalPrice, BigDecimal totalQuantity) {
+    private Ingredient findById(Long ingredientId) {
+        return ingredientRepository.findById(ingredientId)
+                .orElseThrow(ErrorCode.INGREDIENT_NOT_FOUND::throwServiceException);
+    }
+
+    private Ingredient addIngredient(String name, IngredientUnit unit, BigDecimal totalPrice, BigDecimal totalQuantity) {
         return ingredientRepository.findByName(name)
                 .map(ingredient -> addIngredient(ingredient, totalPrice, totalQuantity))
                 .orElseGet(() -> createIngredient(
@@ -73,6 +73,7 @@ public class IngredientService {
         return ingredient;
     }
 
+    // 재료 구매
     @Transactional
     public void purchaseIngredient(String description, List<IngredientAddRequest> requestList, LocalDate actualAt) {
         for(IngredientAddRequest request : requestList) {
@@ -95,6 +96,7 @@ public class IngredientService {
         }
     }
 
+    // 재료 소비 (소비, 플랜 완료)
     @Transactional
     public void useIngredient(String description, List<IngredientUseRequest> requestList, LocalDate actualAt) {
         for(IngredientUseRequest request : requestList) {
@@ -114,7 +116,7 @@ public class IngredientService {
         }
     }
 
-    public Ingredient useIngredient(String name, BigDecimal quantity) {
+    private Ingredient useIngredient(String name, BigDecimal quantity) {
         Optional<Ingredient> optionalIngredient = ingredientRepository.findByName(name);
         if(optionalIngredient.isEmpty()) {
             throw ErrorCode.INGREDIENT_NOT_FOUND.throwServiceException();
@@ -127,6 +129,7 @@ public class IngredientService {
         return ingredient;
     }
 
+    // 재료 목록 조회
     @Transactional(readOnly = true)
     public StockResponse getStocks(int offset, int limit) {
         List<Ingredient> all = ingredientRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
@@ -139,6 +142,7 @@ public class IngredientService {
         return makeResponseWithPaging(dtoList, offset, limit);
     }
 
+    // 재료 이름으로 찾기
     @Transactional(readOnly = true)
     public StockResponse searchStocksByKeyword(String rawKeyword, int offset, int limit) {
         List<String> keywords = Arrays.stream(rawKeyword.split(",")).map(String::trim).toList();
