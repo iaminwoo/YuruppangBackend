@@ -6,7 +6,9 @@ import com.ll.Yuruppang.domain.inventory.entity.dto.request.IngredientUnitReques
 import com.ll.Yuruppang.domain.inventory.entity.dto.response.EggResponse;
 import com.ll.Yuruppang.domain.inventory.entity.dto.response.IngredientResponse;
 import com.ll.Yuruppang.domain.inventory.entity.dto.response.StockResponse;
+import com.ll.Yuruppang.domain.inventory.service.IngredientQueryService;
 import com.ll.Yuruppang.domain.inventory.service.IngredientService;
+import com.ll.Yuruppang.domain.inventory.service.InventoryService;
 import com.ll.Yuruppang.global.response.RsData;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,8 @@ import java.math.BigDecimal;
 public class IngredientController {
 
     private final IngredientService ingredientService;
+    private final IngredientQueryService ingredientQueryService;
+    private final InventoryService inventoryService;
 
     private static final int ITEM_LIMIT = 10;
 
@@ -44,7 +48,7 @@ public class IngredientController {
 
     @DeleteMapping
     public RsData<StockResponse> cleanStocks() {
-        ingredientService.cleanup();
+        inventoryService.cleanupUnusedIngredient();
         final int defaultOffset = 0;
         return RsData.success(HttpStatus.OK, ingredientService.getStocks(defaultOffset, ITEM_LIMIT));
     }
@@ -58,7 +62,7 @@ public class IngredientController {
     public RsData<IngredientResponse> recalculateQuantity(
             @PathVariable Long ingredientId, @RequestBody @Valid IngredientDensityRequest request
     ) {
-        return RsData.success(HttpStatus.OK, ingredientService.recalculateQuantity(ingredientId, request.unitVolume(), request.unitWeight()));
+        return RsData.success(HttpStatus.OK, inventoryService.recalculateQuantity(ingredientId, request.unitVolume(), request.unitWeight()));
     }
 
     @PatchMapping("/{ingredientId}")
@@ -70,12 +74,12 @@ public class IngredientController {
 
     @PostMapping("/break-eggs")
     public RsData<String> breakEggs(@RequestBody @Valid EggBreakRequest request) {
-        ingredientService.breakEggs(BigDecimal.valueOf(request.quantity()));
+        inventoryService.breakEggs(BigDecimal.valueOf(request.quantity()));
         return RsData.success(HttpStatus.OK, "달걀을 깼습니다.");
     }
 
     @GetMapping("/eggs")
     public RsData<EggResponse> getEggs() {
-        return RsData.success(HttpStatus.OK, ingredientService.getEggs());
+        return RsData.success(HttpStatus.OK, ingredientQueryService.getEggs());
     }
 }

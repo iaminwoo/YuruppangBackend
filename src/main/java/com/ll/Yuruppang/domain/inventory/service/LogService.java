@@ -18,8 +18,25 @@ import java.time.LocalDate;
 @Service
 @RequiredArgsConstructor
 public class LogService {
-    private final IngredientService ingredientService;
     private final LogRepository logRepository;
+
+    @Transactional(readOnly = true)
+    public IngredientLog findById(Long id) {
+        return logRepository.findById(id).orElseThrow(ErrorCode.INGREDIENT_LOG_NOT_FOUND::throwServiceException);
+    }
+
+    @Transactional
+    public void createLog(LogType type, Ingredient ingredient, String description, LocalDate actualAt, BigDecimal totalPrice, BigDecimal totalQuantity) {
+        IngredientLog log = IngredientLog.builder()
+                .type(type)
+                .description(description)
+                .ingredient(ingredient)
+                .actualAt(actualAt)
+                .totalPrice(totalPrice)
+                .quantity(totalQuantity)
+                .build();
+        logRepository.save(log);
+    }
 
     @Transactional(readOnly = true)
     public LogGetResponse getLogDetail(Long logId) {
@@ -28,11 +45,7 @@ public class LogService {
 
         return makeGetResponse(log);
     }
-    @Transactional(readOnly = true)
-    public Page<LogGetResponse> getLogs(Pageable pageable) {
-        return logRepository.findAll(pageable)
-                .map(this::makeGetResponse);
-    }
+
     private LogGetResponse makeGetResponse(IngredientLog log) {
         Ingredient ingredient = log.getIngredient();
         return new LogGetResponse(
@@ -43,28 +56,22 @@ public class LogService {
         );
     }
 
-    @Transactional
-    public LogGetResponse modifyLog(Long logId, LogType newType, String description,
-                                    String ingredientName, BigDecimal newQuantity,
-                                    BigDecimal newPrice, LocalDate actualAt) {
-        Ingredient newIngredient = ingredientService.findIngredientByName(ingredientName);
+    @Transactional(readOnly = true)
+    public Page<LogGetResponse> getLogs(Pageable pageable) {
+        return logRepository.findAll(pageable)
+                .map(this::makeGetResponse);
+    }
 
-        IngredientLog log = logRepository.findById(logId)
-                .orElseThrow(ErrorCode.INGREDIENT_LOG_NOT_FOUND::throwServiceException);
-        ingredientService.applyLogEffect(log.getIngredient(), log.getType(), log.getQuantity(), log.getTotalPrice(), true);
-
-        ingredientService.applyLogEffect(newIngredient, newType, newQuantity, newPrice, false);
-
+    public LogGetResponse modifyLog(IngredientLog log, LogType newType, String description, Ingredient newIngredient, BigDecimal newQuantity, BigDecimal newPrice, LocalDate actualAt) {
         log.update(newType, description, newIngredient, newQuantity, newPrice, actualAt);
         return makeGetResponse(log);
     }
 
-    @Transactional
-    public void deleteLog(Long logId) {
-        IngredientLog log = logRepository.findById(logId)
-                .orElseThrow(ErrorCode.INGREDIENT_LOG_NOT_FOUND::throwServiceException);
-        ingredientService.applyLogEffect(log.getIngredient(), log.getType(), log.getQuantity(), log.getTotalPrice(), true);
+    public boolean existsByIngredient(Ingredient ingredient) {
+        return logRepository.existsByIngredient(ingredient);
+    }
 
+    public void delete(IngredientLog log) {
         logRepository.delete(log);
     }
 }

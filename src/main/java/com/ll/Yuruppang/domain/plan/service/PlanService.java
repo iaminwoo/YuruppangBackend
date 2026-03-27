@@ -2,6 +2,7 @@ package com.ll.Yuruppang.domain.plan.service;
 
 import com.ll.Yuruppang.domain.inventory.entity.dto.request.IngredientUseRequest;
 import com.ll.Yuruppang.domain.inventory.service.IngredientService;
+import com.ll.Yuruppang.domain.inventory.service.InventoryService;
 import com.ll.Yuruppang.domain.plan.dto.PlanIdResponse;
 import com.ll.Yuruppang.domain.plan.dto.PlanSimpleResponse;
 import com.ll.Yuruppang.domain.plan.dto.complete.PlanCompleteRequest;
@@ -47,6 +48,7 @@ public class PlanService {
     private final RecipeService recipeService;
     private final RecipeRepository recipeRepository;
     private final IngredientService ingredientService;
+    private final InventoryService inventoryService;
     private final PanService panService;
 
     @PersistenceContext
@@ -355,7 +357,7 @@ public class PlanService {
 
             // 소비 기록 처리
             List<IngredientUseRequest> useList = getIngredientUseRequests(usedRecipe);
-            ingredientService.useIngredient(usedRecipe.getName() + " 제작", useList, LocalDate.now());
+            inventoryService.useIngredient(usedRecipe.getName() + " 제작", useList, LocalDate.now());
         }
 
         LocalDate today = LocalDate.now();

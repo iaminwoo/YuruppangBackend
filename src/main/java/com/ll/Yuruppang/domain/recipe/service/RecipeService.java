@@ -1,6 +1,7 @@
 package com.ll.Yuruppang.domain.recipe.service;
 
 import com.ll.Yuruppang.domain.inventory.entity.Ingredient;
+import com.ll.Yuruppang.domain.inventory.service.IngredientQueryService;
 import com.ll.Yuruppang.domain.inventory.service.IngredientService;
 import com.ll.Yuruppang.domain.plan.dto.detailResponse.ComparedIngredientDto;
 import com.ll.Yuruppang.domain.plan.dto.detailResponse.ComparedPartDto;
@@ -10,6 +11,7 @@ import com.ll.Yuruppang.domain.recipe.dto.*;
 import com.ll.Yuruppang.domain.recipe.dto.autoRegister.RecipeAutoRegisterResponse;
 import com.ll.Yuruppang.domain.recipe.dto.category.CategoryResponse;
 import com.ll.Yuruppang.domain.recipe.entity.*;
+import com.ll.Yuruppang.domain.recipe.repository.PartIngredientRepository;
 import com.ll.Yuruppang.domain.recipe.repository.RecipePartRepository;
 import com.ll.Yuruppang.domain.recipe.repository.RecipeRepository;
 import com.ll.Yuruppang.global.exceptions.ErrorCode;
@@ -39,8 +41,10 @@ import java.util.stream.Collectors;
 public class RecipeService {
     private final RecipeRepository recipeRepository;
     private final RecipePartRepository recipePartRepository;
+    private final PartIngredientRepository partIngredientRepository;
 
     private final IngredientService ingredientService;
+    private final IngredientQueryService ingredientQueryService;
     private final CategoryService categoryService;
     private final PanService panService;
 
@@ -70,7 +74,7 @@ public class RecipeService {
 
     @Transactional
     public RecipeCreateResponse createRecipe(
-            String name, String description,int outputQuantity,
+            String name, String description, int outputQuantity,
             List<RecipePartDto> parts, Long categoryId, Long panId
     ) {
         Recipe recipe = Recipe.builder()
@@ -80,13 +84,13 @@ public class RecipeService {
                 .build();
         categoryService.connectRecipe(recipe, categoryId);
 
-        if(panId == null) panId = 0L;
+        if (panId == null) panId = 0L;
         Optional<Pan> panOptional = panService.findByIdOptional(panId);
         panOptional.ifPresent(recipe::setPan);
 
         recipeRepository.save(recipe);
 
-        for(RecipePartDto dto : parts) {
+        for (RecipePartDto dto : parts) {
             List<RecipeIngredientDto> ingredients = dto.ingredients();
 
             RecipePart part = RecipePart.builder()
@@ -97,10 +101,10 @@ public class RecipeService {
 
             int orderIndex = 1;
 
-            for(RecipeIngredientDto ingredientDto : ingredients) {
+            for (RecipeIngredientDto ingredientDto : ingredients) {
                 Ingredient ingredient;
                 try {
-                    ingredient = ingredientService.findIngredientByName(ingredientDto.ingredientName());
+                    ingredient = ingredientQueryService.findByName(ingredientDto.ingredientName());
                 } catch (ServiceException exception) {
                     ingredient = ingredientService.createIngredient(ingredientDto.ingredientName(), ingredientDto.unit(),
                             BigDecimal.ZERO, BigDecimal.ZERO);
@@ -317,9 +321,9 @@ public class RecipeService {
         String processedKeyword = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
 
         Page<Recipe> recipes;
-        if(processedKeyword == null) {
-            if(categoryId == null) {
-                if(favorite) {
+        if (processedKeyword == null) {
+            if (categoryId == null) {
+                if (favorite) {
                     // 카테고리 없이 즐겨찾기
                     recipes = recipeRepository.findAllByRecipeTypeAndFavorite(RecipeType.NORMAL, true, pageable);
                 } else {
@@ -328,7 +332,7 @@ public class RecipeService {
                 }
             } else {
                 RecipeCategory category = categoryService.findById(categoryId);
-                if(favorite) {
+                if (favorite) {
                     // 카테고리 포함 즐겨찾기
                     recipes = recipeRepository.findAllByRecipeTypeAndCategoryAndFavorite(RecipeType.NORMAL, category, true, pageable);
                 } else {
@@ -337,8 +341,8 @@ public class RecipeService {
                 }
             }
         } else {
-            if(categoryId == null) {
-                if(favorite) {
+            if (categoryId == null) {
+                if (favorite) {
                     // 카테고리 없이 즐겨찾기 + 키워드
                     recipes = recipeRepository.findAllByRecipeTypeAndFavoriteAndNameContainingIgnoreCase(RecipeType.NORMAL, true, processedKeyword, pageable);
                 } else {
@@ -347,7 +351,7 @@ public class RecipeService {
                 }
             } else {
                 RecipeCategory category = categoryService.findById(categoryId);
-                if(favorite) {
+                if (favorite) {
                     // 카테고리 포함 즐겨찾기 + 키워드
                     recipes = recipeRepository.findAllByRecipeTypeAndCategoryAndFavoriteAndNameContainingIgnoreCase(RecipeType.NORMAL, category, true, processedKeyword, pageable);
                 } else {
@@ -377,7 +381,7 @@ public class RecipeService {
         recipe.update(newName, newDescription, newOutputQuantity);
         categoryService.connectRecipe(recipe, newCategoryId);
 
-        if(panId == null) panId = 0L;
+        if (panId == null) panId = 0L;
         Optional<Pan> panOptional = panService.findByIdOptional(panId);
         panOptional.ifPresent(recipe::setPan);
 
@@ -440,7 +444,7 @@ public class RecipeService {
         List<CategoryResponse> allCategories = categoryService.getAllCategories();
 
         StringBuilder categories = new StringBuilder();
-        for(CategoryResponse categoryResponse : allCategories) {
+        for (CategoryResponse categoryResponse : allCategories) {
             String name = categoryResponse.categoryName();
             Long id = categoryResponse.categoryId();
             categories.append(id).append(":").append(name).append("/");
@@ -513,5 +517,9 @@ public class RecipeService {
         String videoInfoText = YoutubeUtils.getVideoInfoText(videoInfo);
 
         return autoRegister(videoInfoText);
+    }
+
+    public boolean existsByIngredient(Ingredient ingredient) {
+        return partIngredientRepository.existsByIngredient(ingredient);
     }
 }

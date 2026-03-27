@@ -4,7 +4,7 @@ import com.ll.Yuruppang.domain.inventory.entity.dto.request.IngredientPurchaseRe
 import com.ll.Yuruppang.domain.inventory.entity.dto.request.IngredientUseListRequest;
 import com.ll.Yuruppang.domain.inventory.entity.dto.request.LogModifyRequest;
 import com.ll.Yuruppang.domain.inventory.entity.dto.response.LogGetResponse;
-import com.ll.Yuruppang.domain.inventory.service.IngredientService;
+import com.ll.Yuruppang.domain.inventory.service.InventoryService;
 import com.ll.Yuruppang.domain.inventory.service.LogService;
 import com.ll.Yuruppang.global.response.RsData;
 import jakarta.validation.Valid;
@@ -21,13 +21,13 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class IngredientLogController {
 
-    private final IngredientService ingredientService;
     private final LogService logService;
+    private final InventoryService inventoryService;
 
     // 재료 구매 기록
     @PostMapping("/purchase")
     public RsData<String> purchaseIngredient(@Valid @RequestBody IngredientPurchaseRequest request) {
-        ingredientService.purchaseIngredient(
+        inventoryService.purchaseIngredient(
                 request.description(), request.requestList(), request.actualAt()
         );
         return RsData.success(HttpStatus.OK, "구매가 성공적으로 등록 되었습니다.");
@@ -36,7 +36,7 @@ public class IngredientLogController {
     // 재료 소비 기록
     @PostMapping("/use")
     public RsData<String> useIngredient(@Valid @RequestBody IngredientUseListRequest request) {
-        ingredientService.useIngredient(
+        inventoryService.useIngredient(
                 request.description(), request.requestList(), request.actualAt()
         );
         return RsData.success(HttpStatus.OK, "소비가 성공적으로 등록 되었습니다.");
@@ -61,7 +61,7 @@ public class IngredientLogController {
     // 재료 기록 수정
     @PutMapping("/{logId}")
     public RsData<LogGetResponse> modifyLog(@PathVariable Long logId, @Valid @RequestBody LogModifyRequest request){
-        return RsData.success(HttpStatus.OK,logService.modifyLog(
+        return RsData.success(HttpStatus.OK,inventoryService.modifyLog(
                 logId, request.type(), request.description(),
                 request.ingredientName(), request.quantity(), request.price(), request.actualAt()
                 ));
@@ -70,7 +70,7 @@ public class IngredientLogController {
     // 재료 기록 삭제
     @DeleteMapping("/{logId}")
     public RsData<String> deleteLog(@PathVariable Long logId){
-        logService.deleteLog(logId);
+        inventoryService.deleteLog(logId);
         return RsData.success(HttpStatus.OK, "성공적으로 삭제되었습니다.");
     }
 
